@@ -1,0 +1,184 @@
+#!/usr/bin/env python
+""" 
+Given a root directory, recurse in it and find all the duplicate 
+files, files that have the same contents, but not necessarily the 
+same filename.
+"""
+
+# Now Python 3 converted!
+#
+# created by David Mertz and Martin Blais
+#
+# This code is released as CC-0
+# http://creativecommons.org/publicdomain/zero/1.0/
+#
+# The person who associated a work with this deed has dedicated the work to
+# the public domain by waiving all of his or her rights to the work
+# worldwide under copyright law, including all related and neighboring
+# rights, to the extent allowed by law.
+#
+# You can copy, modify, distribute and perform the work, even for
+# commercial purposes, all without asking permission. See Other Information
+# below.
+
+from sys import maxsize, stderr, stdout
+from os import remove, walk, readlink
+from os.path import islink
+from fnmatch import fnmatch
+from os.path import isdir, exists, join, isfile, getsize
+from hashlib import md5
+from itertools import groupby
+import sqlite3
+
+
+def main():
+    import optparse
+    parser = optparse.OptionParser(__doc__.strip())
+    parser.add_option('--size-only', type="int", default=maxsize, 
+                      help="(Debugging) consider files a match on size "
+                           "alone if they are larger than SIZE_ONLY")
+    parser.add_option('--use-checkpoint', action="store_true", 
+                      default=False,
+                      help="Begin with stored intermediate results "
+                           "(perhaps out of date)")
+    parser.add_option('--max-size', '-M', type="int", default=maxsize,
+                      help="Ignore files larger than MAX_SIZE")
+    parser.add_option('--min-size', '-m', type="int", default=0,
+                      help="Ignore files smaller than MIN_SIZE")
+    parser.add_option('--glob', '-g', type="str", default="*",
+                      help="Limit matches to glob pattern")
+    parser.add_option('-v', '--verbose', action="store_true", 
+                      default=False,
+                      help="Display progress information on STDERR")
+    opts, args = parser.parse_args()
+    if not args:
+        parser.error("You must specify directories to search.")
+    find_duplicates(args, opts)
+
+
+def find_files(args, pat='*'):
+    for ddir in args:
+        if isdir(ddir):
+            for root, dirs, fnames in walk(ddir):
+                for f in fnames:
+                    if fnmatch(f, pat):
+                        yield join(root, f)
+        else:
+            yield ddir
+
+
+def group_pairs(pairs):
+    """Combine adjacent second items in pairs
+    
+    This function is passed an interable each of whose values is a pair;
+    it yields a sequence of pairs whose first element is the identical
+    first element from the original pairs, and whose second element is a
+    list of second elements corresponding to the same first element. Only
+    adjacent pairs sharing a first element are grouped together, so if the
+    grouping is required to be global, you should pass in 'sorted(pairs)'
+    rather than the raw iterable.  E.g.:
+
+    >>> things = [(1,'foo'), (1,'bar'), (2, 'baz')]
+    >>> group_pairs(things)
+    [(1,['foo','bar']), (2, ['baz'])]
+    """
+    for idx, vals in groupby(pairs, lambda pair: pair[0]):
+        yield (idx, [v[1] for v in vals])
+
+
+def find_duplicates(dirs, opts):
+    "Find the duplicate files in the given root directory."
+
+    # Organize all filenames according to size.
+    if opts.use_checkpoint and exists('sz.db'):
+        conn = sqlite3.connect('sz.db')
+        c = conn.cursor()
+        if opts.verbose:
+            print("Read cached file sizes from 'sz.db'...", file=stderr)
+    else:
+        count = 0
+        if exists('sz.db'):
+            remove('sz.db')
+        conn = sqlite3.connect('sz.db')
+        c = conn.cursor()
+        c.execute('create table files_by_size (size int, fname text)')
+        if opts.verbose:
+            print("Checking sizes (each '.' is 100k files):", file=stderr)
+        for fn in find_files(dirs, opts.glob):
+            if not isfile(fn):
+                continue
+            count += 1
+            sz = getsize(fn)
+            c.execute('insert into files_by_size values (?, ?)', (sz, fn))
+            if opts.verbose and count % 100000 == 0:
+                stderr.write('.')
+        conn.commit()
+        if opts.verbose:
+            print("\nFound sizes on %d files..." % count, file=stderr)
+ 
+    c.execute('''select size, fname from files_by_size 
+                 where size<=? and size>=? 
+                 order by size desc''', (opts.max_size, opts.min_size))
+
+    if opts.verbose:
+        print("Grouping files by MD5 (each '.' is 5k groups):", file=stderr)
+
+    distincts = 0
+    null_header = False
+    empties = 0
+    for sz, fnames in group_pairs(c):
+        if sz == 0:
+            if not null_header:
+                print("Size: 0 : Content: ''")
+                null_header = True
+            for f in fnames:
+                print(' ', f)
+                empties += 1
+        else:
+            # We have accumulated some dups that need to be printed
+            if len(fnames) > 1:
+                hashes = []
+                if sz <= opts.size_only:
+                    for f in fnames:
+                        try:
+                            fh = open(f, 'rb')
+                            content = fh.read()
+                            fh.close()
+                            hashes.append((md5(content).hexdigest(), f))
+                        except IOError as s:
+                            print(s, file=stderr)
+                    hashes.sort()
+                else:
+                    print('Size:', sz, ': Size:', sz)
+                    for f in fnames:
+                        print(' ', f)
+                    print('--')
+                    distincts += 1
+
+                for idx, vals in group_pairs(hashes):
+                    if len(vals) > 1:
+                        distincts +=1
+                        if sz > 40:
+                            print('Size: ', sz, ': MD5:', idx)
+                        else:
+                            fh = open(vals[0], 'rb')
+                            content = fh.read()
+                            fh.close()
+                            print('Size: ', sz, ': Content:', repr(content))
+                        for fn2 in vals:
+                            if islink(fn2):
+                                ln = "-> " + readlink(fn2)
+                                print(' ', fn2, ln)
+                            else:
+                                print(' ', fn2)
+                        if opts.verbose and distincts % 5000 == 0:
+                            stderr.write('.')
+
+    if opts.verbose:
+        print("\nFound %d empty files"% empties, file=stderr)
+        print("Found %d non-empty duplicate sets" % distincts, file=stderr)
+
+
+if __name__ == '__main__':
+    main()
+
