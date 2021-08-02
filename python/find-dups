@@ -26,7 +26,7 @@ from os import remove, walk, readlink
 from os.path import islink
 from fnmatch import fnmatch
 from os.path import isdir, exists, join, isfile, getsize
-from hashlib import md5
+from hashlib import sha1
 from itertools import groupby
 import sqlite3
 
@@ -144,7 +144,7 @@ def find_duplicates(dirs, opts):
                             fh = open(f, 'rb')
                             content = fh.read()
                             fh.close()
-                            hashes.append((md5(content).hexdigest(), f))
+                            hashes.append((sha1(content).hexdigest(), f))
                         except IOError as s:
                             print(s, file=stderr)
                     hashes.sort()
