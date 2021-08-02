@@ -41,7 +41,7 @@ func FillHash(info Finfo, sizeOnly int) Finfo {
         fmt.Fprintf(os.Stderr,
                     "UNAVAILABLE %s\n", info.abspath)
     } else {
-        // If over size-max, use nulls as hash value
+        // If over size-only, use nulls as hash value
         // i.e. perhaps skip work of large SHA calculation
         if (info.fsize <= int64(sizeOnly)) {
             info.hash = sha1.Sum(content)
@@ -51,7 +51,7 @@ func FillHash(info Finfo, sizeOnly int) Finfo {
 }
 
 func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
-              minSize int, maxSize int) {
+              minSize int, maxSize int, sizeOnly int) {
     // Sort from large to small filesize
     sort.Slice(dupsizes, func(i, j int) bool {
                 return dupsizes[i] > dupsizes[j] })
@@ -61,8 +61,11 @@ func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
     for _, size := range dupsizes {
         if (size > int64(maxSize)) { continue }
         if (size < int64(minSize)) { continue }
+
         sameHash = make(map[[20]byte][]string)
+
         for _, info := range sizes[size] {
+            info = FillHash(info, sizeOnly)
             sameHash[info.hash] = append(
                             sameHash[info.hash], info.abspath)  
         }
@@ -106,8 +109,6 @@ func main() {
     for {
         select {
             case info := <-c:
-                // TODO: We'd like asynchronous goroutine!
-                info = FillHash(info, *sizeOnly)
                 sizes[info.fsize] = append(sizes[info.fsize], info)
             case <-time.After(time.Second):
                 var dupsizes []int64
@@ -116,7 +117,7 @@ func main() {
                         dupsizes = append(dupsizes, size)
                     }
                 }
-                ShowDups(sizes, dupsizes, *minSize, *maxSize)
+                ShowDups(sizes, dupsizes, *minSize, *maxSize, *sizeOnly)
                 return
         }
     }
