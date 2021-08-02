@@ -56,19 +56,25 @@ func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
     sort.Slice(dupsizes, func(i, j int) bool {
                 return dupsizes[i] > dupsizes[j] })
 
-    sameHash := make(map[[20]byte][]string)
+    var sameHash map[[20]byte][]string
+
     for _, size := range dupsizes {
         if (size > int64(maxSize)) { continue }
         if (size < int64(minSize)) { continue }
-        fmt.Fprintf(os.Stdout, "Size: %d\n", size)
+        sameHash = make(map[[20]byte][]string)
         for _, info := range sizes[size] {
-            //sameHash = make(map[[20]byte][]string)
             sameHash[info.hash] = append(
                             sameHash[info.hash], info.abspath)  
         }
-        fmt.Println(sameHash)
-            //fmt.Fprintf(os.Stdout, "  %s\n", info.abspath)
-            //fmt.Fprintf(os.Stdout, "  %x\n", info.hash)
+        for hash, fnames := range sameHash {
+            if (len(fnames) > 1) {
+                fmt.Fprintf(os.Stdout, "Size: %d | ", size)
+                fmt.Fprintf(os.Stdout, "SHA1: %x\n", hash)
+                for _, abspath := range fnames {
+                    fmt.Fprintf(os.Stdout, "  %s\n", abspath)
+                }
+            }
+        }
     }
 }
 
@@ -82,38 +88,36 @@ func main() {
     verbose := flag.Bool("verbose", false,
         "Display progress information on STDERR")
     flag.Parse()
-    dirs := flag.Args()
+    dir := flag.Args()[0]
 
     if (*verbose) {
         fmt.Fprintf(os.Stderr, "size-only %d\n", *sizeOnly)
         fmt.Fprintf(os.Stderr, "max-size %d\n", *maxSize)
         fmt.Fprintf(os.Stderr, "min-size %d\n", *minSize)
         fmt.Fprintf(os.Stderr, "verbose %t\n", *verbose)
-        fmt.Fprintf(os.Stderr, "%s\n", dirs)
+        fmt.Fprintf(os.Stderr, "directory %s\n", dir)
     }
 	// Mapping from size to {abspath, sha1}  
 	sizes := make(map[int64][]Finfo)
 
     // Find the files then later fill in sha1 hashes
-    for _, s := range dirs {
-        c := make(chan Finfo, 100)
-        go WalkDir(s, c)
-		for {
-			select {
-				case info := <-c:
-                    // TODO: We'd like asynchronous goroutine!
-                    info = FillHash(info, *sizeOnly)
-                    sizes[info.fsize] = append(sizes[info.fsize], info)
-				case <-time.After(time.Second):
-                    var dupsizes []int64
-                    for size, info := range sizes {
-                        if (len(info) > 1) {
-                            dupsizes = append(dupsizes, size)
-                        }
+    c := make(chan Finfo, 100)
+    go WalkDir(dir, c)
+    for {
+        select {
+            case info := <-c:
+                // TODO: We'd like asynchronous goroutine!
+                info = FillHash(info, *sizeOnly)
+                sizes[info.fsize] = append(sizes[info.fsize], info)
+            case <-time.After(time.Second):
+                var dupsizes []int64
+                for size, info := range sizes {
+                    if (len(info) > 1) {
+                        dupsizes = append(dupsizes, size)
                     }
-                    go ShowDups(sizes, dupsizes, *minSize, *maxSize)
-					return
-            }
+                }
+                ShowDups(sizes, dupsizes, *minSize, *maxSize)
+                return
         }
     }
 }
