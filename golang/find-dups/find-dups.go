@@ -22,8 +22,7 @@ func WalkDir(dir string, c chan Finfo) error {
         if e != nil {
             return e
         }
-        // check if it is a regular file (not dir)
-        if info.Mode().IsRegular() {
+        if !info.Mode().IsDir() {
             abspath, err := filepath.Abs(path)
             if err != nil {
                 fmt.Fprintf(os.Stderr, "SKIPPING %s\n", path)
