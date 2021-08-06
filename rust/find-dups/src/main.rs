@@ -17,8 +17,12 @@ fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
 
             for path in files {
                 let mut hash = Sha1::new();
-                let content = fs::read(path)
-                    .expect("Unable to read file");
+                let content = match fs::read(path) {
+                    Ok(content) => content,
+                    Err(error) => {
+                        eprintln!("UNAVAILABLE {} {:#?}", path, error);
+                        continue } 
+                };
                 hash.input(&content);
                 let mut files = Vec::<String>::new();
                 match samesize.get(&hash.result_str()) {
@@ -26,7 +30,7 @@ fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
                         for fname in found { files.push(fname.to_string()); }
                     },
                     None => { /* Nothing special */ }
-                    }
+                };
                 files.push(path.to_string());
                 samesize.insert(hash.result_str(), files);
             };
@@ -48,7 +52,7 @@ fn main() {
 
     for e in tree.filter_map(|e| e.ok()) {
         let meta = e.metadata().unwrap();
-        if meta.is_file() {
+        if meta.is_file() & (meta.len() > 0) {
             let path = e.path().display();
             let mut files = Vec::<String>::new();
             match filesizes.get(&meta.len()) {
@@ -56,7 +60,7 @@ fn main() {
                     for fname in found { files.push(fname.to_string()); }
                 },
                 None => { /* Nothing special */ }
-            }
+            };
             files.push(path.to_string());
             filesizes.insert(meta.len(), files);
         }
