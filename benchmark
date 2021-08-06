@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "Each language reports file count and time elapsed for CONDA_PREFIX"
+echo
+echo -n "Rust "
+/usr/bin/time -f "wall clock: %E" \
+        rust/find-dups/target/release/find-dups $CONDA_PREFIX | wc -l
+echo -n "Python "
+/usr/bin/time -f "wall clock: %E" \
+        python/find-dups $CONDA_PREFIX | wc -l
+echo -n "Golang "
+/usr/bin/time -f "wall clock: %E" \
+        golang/find-dups/find-dups $CONDA_PREFIX | wc -l
