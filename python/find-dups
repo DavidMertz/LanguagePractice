@@ -5,8 +5,6 @@ files, files that have the same contents, but not necessarily the
 same filename.
 """
 
-# Now Python 3 converted!
-#
 # created by David Mertz and Martin Blais
 #
 # This code is released as CC-0
@@ -41,11 +39,14 @@ def main():
                       default=False,
                       help="Begin with stored intermediate results "
                            "(perhaps out of date)")
-    parser.add_option('--max-size', '-M', type="int", default=maxsize,
+    parser.add_option('-M', '--max-size', type="int", default=maxsize,
                       help="Ignore files larger than MAX_SIZE")
-    parser.add_option('--min-size', '-m', type="int", default=0,
+    parser.add_option('-m', '--min-size', type="int", default=0,
                       help="Ignore files smaller than MIN_SIZE")
-    parser.add_option('--glob', '-g', type="str", default="*",
+    parser.add_option('-i', '--ignore-symlinks', action="store_true",
+                       default=False,
+                       help="Do not treat symbolic links as duplicates")
+    parser.add_option('-g', '--glob', type="str", default="*",
                       help="Limit matches to glob pattern")
     parser.add_option('-v', '--verbose', action="store_true", 
                       default=False,
@@ -121,12 +122,16 @@ def find_duplicates(dirs, opts):
                  order by size desc''', (opts.max_size, opts.min_size))
 
     if opts.verbose:
-        print("Grouping files by MD5 (each '.' is 5k groups):", file=stderr)
+        print("Grouping files by SHA1 (each '.' is 5k groups):", file=stderr)
 
     distincts = 0
     null_header = False
     empties = 0
     for sz, fnames in group_pairs(c):
+        # We might wish to exclude symbolic links
+        if opts.ignore_symlinks:
+            fnames = [f for f in fnames if not islink(f)]
+
         if sz == 0:
             if not null_header:
                 print("Size: 0 : Content: ''")
@@ -140,6 +145,10 @@ def find_duplicates(dirs, opts):
                 hashes = []
                 if sz <= opts.size_only:
                     for f in fnames:
+                        if islink(f):
+                            # No need to spend SHA1 time on symlink
+                            hashes.append(("_SYMLINK" , f))
+                            continue
                         try:
                             fh = open(f, 'rb')
                             content = fh.read()

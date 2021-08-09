@@ -6,7 +6,7 @@ CP=$CONDA_PREFIX
 
 echo -n "Python "
 start=$(date +%s)
-python/find-dups -m1 $CP >find-dups.python 2>/dev/null
+python/find-dups -m1 -i $CP >find-dups.python 2>/dev/null
 grep '^  ' find-dups.python | wc -l
 end=$(date +%s)
 echo $(numfmt --to=si --suffix=" seconds" $(($end-$start)))
