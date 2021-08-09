@@ -40,7 +40,7 @@ Size: 41 | SHA1: fc7c94eecb0631af36c2db841ad1b8c0d080a289
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
 ```
 
-That is, a line should announce the size of files with identical contents and the associated hash (SHA1 is used in example, and is probably a good choice; another hash, or another technique altogether, is permitted).
+That is, a line should announce the size of files with identical contents and the associated hash (SHA1 is used in example, and is probably a good choice; another hash, or another technique altogether, is permitted). Sets of duplicates must appear in descending order by size.
 
 Two or more following lines will be indented by two spaces and contain the full absolute path to the duplicate in question. Such duplicates appear in unspecified order within their section.
 
