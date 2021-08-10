@@ -114,22 +114,28 @@ func init() {
 
 */
 func main() {
-    sizeOnly := flag.Int("size-only", 1e9,
+    sizeOnly := *flag.Int("size-only", 1e9,
         "Files match if same-size larger than size-only")
-    maxSize := flag.Int("max-size", 1e10,
-        "Ignore files larger than max-size")
-    minSize := flag.Int("min-size", 1,
-        "Ignore files smaller than min-size")
-    verbose := flag.Bool("verbose", false,
-        "Display progress information on STDERR")
+    var maxSize int
+    flag.IntVar(&maxSize, "max-size", 1e10,
+                "Ignore files larger than max-size")
+    flag.IntVar(&maxSize, "M", 1e10, "Ignore larger than (short flag)")
+    var minSize int
+    flag.IntVar(&minSize, "min-size", 1,
+                "Ignore files smaller than min-size")
+    flag.IntVar(&minSize, "m", 1, "Ignore smaller than (short flag")
+    var verbose bool
+    flag.BoolVar(&verbose, "verbose", false, 
+                 "Display progress information on STDERR")
+    flag.BoolVar(&verbose, "v", false, "Display info on STDERR (short flag)")
     flag.Parse()
     dir := flag.Args()[0]
 
-    if (*verbose) {
-        fmt.Fprintf(os.Stderr, "size-only %d\n", *sizeOnly)
-        fmt.Fprintf(os.Stderr, "max-size %d\n", *maxSize)
-        fmt.Fprintf(os.Stderr, "min-size %d\n", *minSize)
-        fmt.Fprintf(os.Stderr, "verbose %t\n", *verbose)
+    if (verbose) {
+        fmt.Fprintf(os.Stderr, "size-only %d\n", sizeOnly)
+        fmt.Fprintf(os.Stderr, "max-size %d\n", maxSize)
+        fmt.Fprintf(os.Stderr, "min-size %d\n", minSize)
+        fmt.Fprintf(os.Stderr, "verbose %t\n", verbose)
         fmt.Fprintf(os.Stderr, "directory %s\n", dir)
     }
 	// Mapping from size to {abspath, sha1}  
@@ -149,7 +155,7 @@ func main() {
                         dupsizes = append(dupsizes, size)
                     }
                 }
-                ShowDups(sizes, dupsizes, *minSize, *maxSize, *sizeOnly)
+                ShowDups(sizes, dupsizes, minSize, maxSize, sizeOnly)
                 return
         }
     }
