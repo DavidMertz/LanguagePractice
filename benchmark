@@ -4,21 +4,21 @@ echo
 
 CP=$CONDA_PREFIX
 
-echo -n "Python "
+echo -n "Python; dups: "
 start=$(date +%s)
 python/find-dups -m1 -i $CP >find-dups.python 2>/dev/null
 grep '^  ' find-dups.python | wc -l
 end=$(date +%s)
 echo $(numfmt --to=si --suffix=" seconds" $(($end-$start)))
 
-echo -n "Golang "
+echo -n "Golang; dups: "
 start=$(date +%s)
 golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang 
 grep '^  ' find-dups.golang | wc -l
 end=$(date +%s)
 echo $(numfmt --to=si --suffix=" secs" $(($end-$start)))
 
-echo -n "Rust "
+echo -n "Rust; dups: "
 start=$(date +%s)
 rust/find-dups/target/release/find-dups $CP 2>/dev/null >find-dups.rust
 grep '^  ' find-dups.rust | wc -l
