@@ -19,8 +19,8 @@ Information below.
 */
 extern crate walkdir;
 extern crate crypto;
+extern crate clap;
 
-use std::env;
 use std::fs;
 use std::collections::btree_map::BTreeMap;
 use std::collections::HashMap;
@@ -28,6 +28,7 @@ use std::vec::Vec;
 use walkdir::WalkDir;
 use self::crypto::digest::Digest;
 use self::crypto::sha1::Sha1;
+use clap::{Arg, App};
 
 fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
     for (size, files) in (&filesizes).iter().rev() {
@@ -64,14 +65,72 @@ fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let dir = &args[1];
+	let args = App::new("Find Duplicate File Contents")
+		.version("0.1")
+		.author("David Mertz <mertz@kdm.training>")
+		.about("Find Duplicate File Contents")
+		.arg(Arg::with_name("minSize")
+		   	.short("m")
+		   	.long("min-size")
+		   	.help("Ignore files smaller than min-size")
+		   	.takes_value(true))
+		.arg(Arg::with_name("maxSize")
+		   	.short("M")
+		   	.long("max-size")
+		   	.help("Ignore files larger than max-size")
+		   	.takes_value(true))
+		.arg(Arg::with_name("sizeOnly")
+		   	.long("size-only")
+		   	.help("File match if same-size larger than size-only")
+		   	.takes_value(true))
+		.arg(Arg::with_name("DIR")
+		   	.help("Root of directory tree to compare")
+		   	.required(true)
+		   	.index(1))
+		.arg(Arg::with_name("verbose")
+		   	.short("v")
+			.long("verbose")
+		    .multiple(false)
+		    .help("Display extra information on STDERR"))
+		.get_matches();
+
+    let dir = args.value_of("DIR").unwrap();
+    let min_size = match args.value_of("minSize") {
+        None => 1,
+        Some(s) => match s.parse::<u64>() {
+            Ok(n) => n,
+            Err(_) => { 
+                eprintln!("An integer is required for min-size"); 0 },
+        }
+    };
+    let max_size = match args.value_of("maxSize") {
+        None => 10_000_000_000,
+        Some(s) => match s.parse::<u64>() {
+            Ok(n) => n,
+            Err(_) => { 
+                eprintln!("An integer is required for max-size"); 0 },
+        }
+    };
+    let _size_only = match args.value_of("sizeOnly") {
+        None => 1_000_000_000,
+        Some(s) => match s.parse::<u64>() {
+            Ok(n) => n,
+            Err(_) => {
+                eprintln!("An integer is required for size-only"); 0 },
+        }
+    };
+    let verbose = args.is_present("verbose");
+    if verbose {
+        eprintln!("Arguments given are: {:#?}", args);
+    }
+
     let mut filesizes = BTreeMap::<u64, Vec::<String>>::new();
     let tree = WalkDir::new(dir).into_iter();
 
     for e in tree.filter_map(|e| e.ok()) {
         let meta = e.metadata().unwrap();
-        if meta.is_file() & (meta.len() > 0) {
+        let fsize = meta.len();
+        if meta.is_file() & (fsize >= min_size) & (fsize <= max_size) {
             let mut files = Vec::<String>::new();
             match filesizes.get(&meta.len()) {
                 Some(found) => {
