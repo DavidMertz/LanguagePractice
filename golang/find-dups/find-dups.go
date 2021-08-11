@@ -99,6 +99,20 @@ func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
     }
 }
 
+/*
+var myFlagType string
+
+func init() {
+    const (
+        flagValue = "default value is foo"
+        flagUsage = "this is my flag explanation"
+    )
+    flag.StringVar(&myFlagType, "foo", flagValue, flagUsage)
+    flag.StringVar(&myFlagType, "f", flagValue, flagUsage+" (shorthand)")
+    flag.Parse()
+}
+
+*/
 func main() {
     sizeOnly := *flag.Int("size-only", 1e9,
         "Files match if same-size larger than size-only")
