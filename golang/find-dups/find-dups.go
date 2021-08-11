@@ -25,6 +25,7 @@ import (
     "flag"
     "time"
     "sort"
+    "sync"
     "path/filepath"
     "crypto/sha1"
 )
@@ -53,18 +54,19 @@ func WalkDir(dir string, c chan Finfo) error {
     })
 }
 
-func FillHash(info Finfo, sizeOnly int) Finfo {
+func FillHash(info Finfo, sizeOnly int, hashGroup *sync.WaitGroup) Finfo {
     content, err := os.ReadFile(info.abspath)
     if err != nil {
         fmt.Fprintf(os.Stderr,
                     "UNAVAILABLE %s\n", info.abspath)
     } else {
-        // If over size-only, use nulls as hash value
+        // If over size-only, retain nulls as hash value
         // i.e. perhaps skip work of large SHA calculation
         if (info.fsize <= int64(sizeOnly)) {
             info.hash = sha1.Sum(content)
         }
     }
+    hashGroup.Done()
     return info
 }
 
@@ -82,11 +84,15 @@ func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
 
         sameHash = make(map[[20]byte][]string)
 
+        var hashGroup sync.WaitGroup
+        hashGroup.Add(len(sizes[size]))
         for _, info := range sizes[size] {
-            info = FillHash(info, sizeOnly)
+            info = FillHash(info, sizeOnly, &hashGroup)
             sameHash[info.hash] = append(
                             sameHash[info.hash], info.abspath)  
         }
+        hashGroup.Wait()
+
         for hash, fnames := range sameHash {
             if (len(fnames) > 1) {
                 fmt.Fprintf(os.Stdout, "Size: %d | ", size)
@@ -99,20 +105,6 @@ func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
     }
 }
 
-/*
-var myFlagType string
-
-func init() {
-    const (
-        flagValue = "default value is foo"
-        flagUsage = "this is my flag explanation"
-    )
-    flag.StringVar(&myFlagType, "foo", flagValue, flagUsage)
-    flag.StringVar(&myFlagType, "f", flagValue, flagUsage+" (shorthand)")
-    flag.Parse()
-}
-
-*/
 func main() {
     sizeOnly := *flag.Int("size-only", 1e9,
         "Files match if same-size larger than size-only")
