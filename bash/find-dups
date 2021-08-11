@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Given a root directory, recurse in it and find all the duplicate
+# files, files that have the same contents, but not necessarily the
+# same filename.
+
+# ... as it turns out, this version is INSANELY slow, even when 
+# subprocesses are launched for each SHA1 calculation.
+
+
+# This code is released as CC-0
+# http://creativecommons.org/publicdomain/zero/1.0/
+#
+# The person who associated a work with this deed has dedicated the work to
+# the public domain by waiving all of his or her rights to the work
+# worldwide under copyright law, including all related and neighboring
+# rights, to the extent allowed by law.
+#
+# You can copy, modify, distribute and perform the work, even for
+# commercial purposes, all without asking permission. See Other Information
+# below.
+
+# Default to current directory if no argument given
+if [ -z "$1" ]; 
+    then dir='.';
+    else dir=$1; 
+fi
+
+# Temporary files used
+filesizes=$(mktemp)
+samesize=$(mktemp)
+sha1file=$(mktemp)
+samesha1=$(mktemp)
+filename=$(mktemp)
+size2plus=$(mktemp)
+
+sha1 () (
+    record=$(sha1sum "$1")
+    (
+    flock -x 200
+    echo "$record" >> $sha1file
+    ) 200>/var/lock/duplock 
+)
+
+# Get the files prefixed and sorted by size
+find $dir -type f -size +1c -print0 | 
+    xargs -0 wc --bytes | 
+    grep -Pv '\stotal$' |
+    sort -nr > $filesizes
+
+# Determine which sizes have multiple entries
+sed 's/^ *//' $filesizes |
+    cut -f1 -d' ' | 
+    uniq -c | 
+    grep -Pv '^ *1\s' |
+    cut -c9- > $size2plus
+
+# Loop through by file size
+while read size; do
+    size=$(echo $size | xargs)  # trim whitespace
+
+    # SHA1 hashes of all the files of current size
+    grep -P "^ *${size} " $filesizes | 
+        sed 's/^ *//' |
+        cut -f2- -d' ' > $samesize
+
+    >$sha1file  # empty the file
+
+    while IFS= read -r fname || [[ -n $fname ]]; do
+        sha1 "$fname" "$sha1file" &
+    done < $samesize
+
+    # Group by SHA1 (if more than 1 match)
+    cut -c-40 $sha1file | uniq -c | grep -v '^ *1 ' | cut -c9- > $samesha1
+
+    # Loop through those duplicate SHA1 hashes
+    while IFS= read -r line; do
+        sha1=$(echo $line | cut -c-40)
+        echo "Size: $size | SHA1: $sha1"
+        grep "$sha1" $sha1file | cut -c43- > $filename
+        while IFS= read -r fname; do
+            echo "  "$(realpath "$fname")
+        done < $filename
+    done < $samesha1 
+
+done < $size2plus
+
+# Cleanup tempfiles
+rm $filesizes
+rm $samesize
+rm $sha1file
+rm $samesha1
+rm $size2plus
