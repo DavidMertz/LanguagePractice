@@ -9,11 +9,12 @@ that language very well already.
 
 * Rust
 * Go
-* Kotlin
 * Julia
 * Dart
 * TypeScript
 * Ruby
+* Kotlin
+* Bash (baseline)
 
 # Tasks/scripts to create
 
