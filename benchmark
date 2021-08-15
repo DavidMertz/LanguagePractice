@@ -11,6 +11,14 @@ grep '^  ' find-dups.golang | wc -l
 end=$(date +%s)
 echo $(numfmt --to=si --suffix=" secs" $(($end-$start)))
 
+export JULIA_NUM_THREADS=$(nproc)
+echo -n "Julia | dups "
+start=$(date +%s)
+julia/find-dups $CP 2>/dev/null >find-dups.julia 
+grep '^  ' find-dups.golang | wc -l
+end=$(date +%s)
+echo $(numfmt --to=si --suffix=" secs" $(($end-$start)))
+
 echo -n "Python | dups "
 start=$(date +%s)
 python/find-dups -m1 -i $CP >find-dups.python 2>/dev/null

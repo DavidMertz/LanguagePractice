@@ -1,0 +1,120 @@
+#!/usr/bin/env julia
+"""
+Given a root directory, recurse in it and find all the duplicate
+files, files that have the same contents, but not necessarily the
+same filename.
+"""
+
+# This code is released as CC-0
+# http://creativecommons.org/publicdomain/zero/1.0/
+#
+# The person who associated a work with this deed has dedicated the work to
+# the public domain by waiving all of his or her rights to the work
+# worldwide under copyright law, including all related and neighboring
+# rights, to the extent allowed by law.
+#
+# You can copy, modify, distribute and perform the work, even for
+# commercial purposes, all without asking permission. See Other Information
+# below.
+
+using ArgParse
+using SHA
+using Mmap
+
+"Implement the standard command-line switches required by find-dups spec"
+function parse_commandline()
+    s = ArgParseSettings()
+    @add_arg_table! s begin
+        "--max-size", "-M"
+            default = 10_000_000_000
+            arg_type = Int
+            help = "Ignore files larger than max-size"
+        "--min-size", "-m"
+            default = 1
+            arg_type = Int
+            help = "Ignore files smaller than min-size"
+        "--size-only"
+            default = 1_000_000_000
+            arg_type = Int
+            help = "Files match is same-size larger than size-only"
+        "--verbose", "-v"
+            action = :store_true
+            help = "Display progress information on STDERR"
+        "rootdir"
+            required = true
+            help = "Root directory to recurse for comparison of contents"
+    end
+    parse_args(s)
+end
+
+"Iterate dict of files grouped by size and find duplicate contents"
+function show_dups(by_size)
+    digest_lock = Threads.SpinLock()
+    sizes = sort(collect(keys(by_size)), rev=true)
+    for size in sizes
+        paths = by_size[size]
+        # If not a duplicate, continue
+        if length(paths) < 2 continue end
+      
+        # Within this size, create hash digests in parallel
+        nfiles = length(paths)
+        digests = Dict{String, String}()
+        Threads.@threads for i ∈ 1:nfiles
+            content = UInt8[]
+            readbytes!(open(paths[i], "r"), content, Inf)
+            digest = bytes2hex(sha1(content))
+            lock(digest_lock)
+            digests[paths[i]] = digest
+            unlock(digest_lock)
+        end
+
+        # Condense the hashes into by_hash dictionary
+        by_hash = Dict{String, Array{String}}()
+        for (path, digest) in digests
+            if digest ∉ keys(by_hash) by_hash[digest] = [] end
+            push!(by_hash[digest], path)
+        end
+
+        # Produce the report for this file size (if any)
+        for (digest, paths) in by_hash
+            if length(paths) < 2 continue end
+            println("Size: $(size) | SHA1: $(digest)")
+            for path in paths
+                println("  $(path)")
+            end
+        end
+    end
+end
+
+"Generate mapping of common size to filenames, then call show_dups()"
+function main()
+    by_size = Dict{Int, Array}()
+    args = parse_commandline()
+    maxsize = args["max-size"]
+    minsize = args["min-size"]
+
+	if args["verbose"]
+        println(stderr, "Threads: $(Threads.nthreads())")
+        for (k, v) in args
+            println(stderr, "$(repr(k)) => $(repr(v))")
+        end
+	end
+
+	for (root, dirs, files) in walkdir(args["rootdir"])
+		for file in files
+            path = abspath(joinpath(root, file))
+            size = stat(path).size
+            # Ignore if outside size bounds
+            if (size > maxsize) || (size < minsize) continue end
+            # Put empty array in by_size if size not present
+            if size ∉ keys(by_size) by_size[size] = [] end
+            # Add the current path to the by_size
+            push!(by_size[size], path)
+		end
+	end
+
+    show_dups(by_size)
+end
+
+main()
+

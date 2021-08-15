@@ -10,6 +10,4 @@ Session.vim
 tags
 
 sz.db
-find-dups.python
-find-dups.golang
-find-dups.rust
+/find-dups.*
