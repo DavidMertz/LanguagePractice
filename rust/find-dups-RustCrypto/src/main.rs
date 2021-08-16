@@ -18,7 +18,6 @@ commercial purposes, all without asking permission. See Other
 Information below.
 */
 extern crate walkdir;
-extern crate crypto;
 extern crate clap;
 
 use std::fs;
@@ -26,8 +25,7 @@ use std::collections::btree_map::BTreeMap;
 use std::collections::HashMap;
 use std::vec::Vec;
 use walkdir::WalkDir;
-use self::crypto::digest::Digest;
-use self::crypto::sha1::Sha1;
+use sha1::Digest;
 use clap::{Arg, App};
 
 fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
@@ -36,27 +34,28 @@ fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
             let mut samesize = HashMap::<String, Vec::<String>>::new();
 
             for path in files {
-                let mut hash = Sha1::new();
                 let content = match fs::read(path) {
                     Ok(content) => content,
                     Err(error) => {
                         eprintln!("UNAVAILABLE {} {:#?}", path, error);
                         continue } 
                 };
-                hash.input(&content);
+                let digest = sha1::Sha1::digest(&content);
+                let hexdigest = format!("{:x}", digest);
+
                 let mut files = Vec::<String>::new();
-                match samesize.get(&hash.result_str()) {
+                match samesize.get(&hexdigest) {
                     Some(found) => {
                         for fname in found { files.push(fname.to_string()); }
                     },
                     None => { /* Nothing special */ }
                 };
                 files.push(path.to_string());
-                samesize.insert(hash.result_str(), files);
+                samesize.insert(hexdigest, files);
             };
-            for (hash, files) in samesize {
+            for (digest, files) in samesize {
                 if files.len() > 1 {
-                    println!("Size {} | SHA1: {}", size, hash);
+                    println!("Size {} | SHA1: {}", size, digest);
                     for path in files { println!("  {}", path); }
                 }
             }

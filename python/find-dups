@@ -20,12 +20,13 @@ same filename.
 # below.
 
 from sys import maxsize, stderr, stdout
-from os import remove, walk, readlink
+from os import remove, walk, readlink, cpu_count
 from os.path import islink, abspath
 from fnmatch import fnmatch
 from os.path import isdir, exists, join, isfile, getsize
 from hashlib import sha1
 from itertools import groupby
+from multiprocessing import Pool
 import sqlite3
 
 
@@ -46,6 +47,9 @@ def main():
     parser.add_option('-i', '--ignore-symlinks', action="store_true",
                        default=False,
                        help="Do not treat symbolic links as duplicates")
+    parser.add_option('-p', '--parallel', action="store_true",
+                      default=False,
+                      help="Attempt to use parallel SHA1 calculations")
     parser.add_option('-g', '--glob', type="str", default="*",
                       help="Limit matches to glob pattern")
     parser.add_option('-v', '--verbose', action="store_true",
@@ -54,18 +58,42 @@ def main():
     opts, args = parser.parse_args()
     if not args:
         parser.error("You must specify directories to search.")
+
+    # If we are using parallel style, create a pool once
+    if opts.parallel:
+        opts.parallel = Pool(processes=int(cpu_count()*0.75))
     find_duplicates(args, opts)
 
 
 def find_files(args, pat='*'):
-    for ddir in args:
-        if isdir(ddir):
-            for root, dirs, fnames in walk(ddir):
+    for dir in args:
+        if isdir(dir):
+            for root, dirs, fnames in walk(dir):
                 for f in fnames:
                     if fnmatch(f, pat):
                         yield join(root, f)
         else:
-            yield ddir
+            yield dir
+
+
+def hash_content(f):
+    if islink(f):
+        # No need to spend SHA1 time on symlink
+        return ("_SYMLINK" , f)
+    try:
+        with open(f, 'rb') as fh:
+            content = fh.read()
+            return (sha1(content).hexdigest(), f)
+    except IOError as s:
+        print(s, file=stderr)
+        return ("_ERROR", f)
+
+
+def parallel_hash(fnames, pool=None):
+    if pool is none:
+        # Shouldn't hit this path, but just in case...
+        pool = Pool(processes=cpu_count()//2)
+    return pool.map(hash_content, fnames)
 
 
 def group_pairs(pairs):
@@ -142,37 +170,25 @@ def find_duplicates(dirs, opts):
         else:
             # We have accumulated some dups that need to be printed
             if len(fnames) > 1:
-                hashes = []
                 if sz <= opts.size_only:
-                    for f in fnames:
-                        if islink(f):
-                            # No need to spend SHA1 time on symlink
-                            hashes.append(("_SYMLINK" , f))
-                            continue
-                        try:
-                            fh = open(f, 'rb')
-                            content = fh.read()
-                            fh.close()
-                            hashes.append((sha1(content).hexdigest(), f))
-                        except IOError as s:
-                            print(s, file=stderr)
-                    hashes.sort()
+                    hashes = [hash_content(f) for f in fnames]
+                elif opts.parallel:
+                    hashes = parallel_hash(fnames, pool=opts.parallel)
                 else:
+                    hashes = []  # Empty hashes, report handled here
                     print('Size:', sz, '| Size:', sz)
                     for f in fnames:
                         print(' ', f)
-                    print('--')
                     distincts += 1
 
-                for idx, vals in group_pairs(hashes):
+                for idx, vals in group_pairs(sorted(hashes)):
                     if len(vals) > 1:
                         distincts +=1
                         if sz > 40:
                             print('Size:', sz, '| SHA1:', idx)
                         else:
-                            fh = open(vals[0], 'rb')
-                            content = fh.read()
-                            fh.close()
+                            with open(vals[0], 'rb') as fh:
+                                content = fh.read()
                             print('Size:', sz, '| Content:', repr(content))
                         for fn2 in vals:
                             if islink(fn2):

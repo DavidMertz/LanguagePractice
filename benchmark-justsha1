@@ -1,0 +1,23 @@
+#!/bin/bash
+
+echo "=== File 'data' is one billion bytes ==="
+
+echo
+echo "/usr/bin/sha1sum"
+/usr/bin/time -f "%e seconds" sha1sum data
+
+echo
+echo "$PWD/python/sha1sum"
+/usr/bin/time -f "%e seconds" python/sha1sum data
+
+echo
+echo "$PWD/julia/sha1sum"
+/usr/bin/time -f "%e seconds" julia/sha1sum data
+
+echo
+echo "$PWD/golang/sha1sum/sha1sum"
+/usr/bin/time -f "%e seconds" golang/sha1sum/sha1sum data
+
+echo
+echo "$PWD/rust/sha1sum/target/release/sha1sum"
+/usr/bin/time -f "%e seconds" rust/sha1sum/target/release/sha1sum data

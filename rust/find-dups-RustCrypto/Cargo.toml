@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 walkdir = "2"
-rust-crypto = "^0.2"
+sha-1 = "0.9.7"
 clap = "2"
 
 [profile.dev]

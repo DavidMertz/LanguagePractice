@@ -2,49 +2,63 @@
 echo "Each language reports file count and time elapsed for CONDA_PREFIX"
 echo
 
+JULIA_NUM_THREADS=$(nproc)
 CP=$CONDA_PREFIX
 
-echo -n "Golang | dups "
+echo -n "Golang            "
 start=$(date +%s)
 golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang 
-grep '^  ' find-dups.golang | wc -l
+dups=$(grep '^  ' find-dups.golang | wc -l)
 end=$(date +%s)
-echo $(numfmt --to=si --suffix=" secs" $(($end-$start)))
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
 
-export JULIA_NUM_THREADS=$(nproc)
-echo -n "Julia | dups "
-start=$(date +%s)
-julia/find-dups $CP 2>/dev/null >find-dups.julia 
-grep '^  ' find-dups.golang | wc -l
-end=$(date +%s)
-echo $(numfmt --to=si --suffix=" secs" $(($end-$start)))
-
-echo -n "Python | dups "
+echo -n "Python (serial)   "
 start=$(date +%s)
 python/find-dups -m1 -i $CP >find-dups.python 2>/dev/null
-grep '^  ' find-dups.python | wc -l
+dups=$(grep '^  ' find-dups.python | wc -l)
 end=$(date +%s)
-echo $(numfmt --to=si --suffix=" seconds" $(($end-$start)))
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
 
-echo -n "Rust (rust-crypto) | dups "
+echo -n "Python (parallel) "
+start=$(date +%s)
+python/find-dups -m1 -i -p $CP >find-dups.pyparallel 2>/dev/null
+dups=$(grep '^  ' find-dups.pyparallel | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "Julia             "
+start=$(date +%s)
+julia/find-dups $CP 2>/dev/null >find-dups.julia 
+dups=$(grep '^  ' find-dups.golang | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "Rust (rust-crypto)"
 start=$(date +%s)
 rust/find-dups-rust-crypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
-grep '^  ' find-dups.rust | wc -l
+dups=$(grep '^  ' find-dups.rust | wc -l)
 end=$(date +%s)
-echo $(numfmt --to=si --suffix=" secs" $(($end-$start)))
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
 
-echo -n "Rust (RustCrypto) | dups "
+echo -n "Rust (RustCrypto) "
 start=$(date +%s)
 rust/find-dups-RustCrypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
-grep '^  ' find-dups.rust | wc -l
+dups=$(grep '^  ' find-dups.rust | wc -l)
 end=$(date +%s)
-echo $(numfmt --to=si --suffix=" secs" $(($end-$start)))
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
 
 # Far too slow to run very much
-#echo -n "Bash | dups "
+#echo -n "Bash"
 #start=$(date +%s)
 #bash/find-dups $CP >find-dups.bash
-#grep '^  ' find-dups.bash | wc -l
+#dups=$(grep '^  ' find-dups.bash | wc -l)
 #end=$(date +%s)
-#echo $(numfmt --to=si --suffix=" seconds" $(($end-$start)))
+#secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+#echo " | dups $dups | $secs"
 
