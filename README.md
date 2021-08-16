@@ -7,14 +7,18 @@ that language very well already.
 
 # Languages I'd like to learn (or know better)
 
-[ ] Rust
-[ ] Go
-[ ] Julia
-[ ] Dart
-[ ] TypeScript
-[ ] Ruby
-[ ] Kotlin
-[ ] Bash (baseline)
+Checkmarks used to indicate at least a reasonable first version of specified tools have been created.
+
+- [ ] Python
+- [ ] Python (parallel)
+- [ ] Rust
+- [ ] Go
+- [ ] Julia
+- [ ] Dart
+- [ ] TypeScript
+- [ ] Ruby
+- [ ] Kotlin
+- [ ] Bash (baseline)
 
 # Tasks/scripts to create
 
