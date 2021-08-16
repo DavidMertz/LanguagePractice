@@ -7,14 +7,14 @@ that language very well already.
 
 # Languages I'd like to learn (or know better)
 
-* Rust
-* Go
-* Julia
-* Dart
-* TypeScript
-* Ruby
-* Kotlin
-* Bash (baseline)
+[ ] Rust
+[ ] Go
+[ ] Julia
+[ ] Dart
+[ ] TypeScript
+[ ] Ruby
+[ ] Kotlin
+[ ] Bash (baseline)
 
 # Tasks/scripts to create
 
