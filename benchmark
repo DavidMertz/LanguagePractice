@@ -6,17 +6,6 @@ JULIA_NUM_THREADS=$(nproc)
 NODE_OPTIONS="--max-old-space-size=8192"
 CP=$CONDA_PREFIX
 
-echo -n "TypeScript ->.js  "
-cd typescript >/dev/null
-tsc find-dups.ts
-cd - >/dev/null
-start=$(date +%s)
-typescript/find-dups.js $CP 2>/dev/null >find-dups.typescript
-dups=$(grep '^  ' find-dups.typescript | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
 echo -n "Golang            "
 start=$(date +%s)
 golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang 
@@ -37,7 +26,7 @@ echo -n "Python (serial)   "
 start=$(date +%s)
 python/find-dups -m1 -i $CP >find-dups.python 2>/dev/null
 dups=$(grep '^  ' find-dups.python | wc -l)
-end=$(date +%)
+end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
@@ -45,6 +34,17 @@ echo -n "Julia             "
 start=$(date +%s)
 julia/find-dups $CP 2>/dev/null >find-dups.julia 
 dups=$(grep '^  ' find-dups.golang | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "TypeScript ->.js  "
+cd typescript >/dev/null
+tsc find-dups.ts
+cd - >/dev/null
+start=$(date +%s)
+typescript/find-dups.js $CP 2>/dev/null >find-dups.typescript
+dups=$(grep '^  ' find-dups.typescript | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"

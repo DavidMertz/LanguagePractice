@@ -48,9 +48,9 @@ const walkdir = (
                     problem(err, file); }
                 else if (stat && stat.isDirectory()) {
                     walkdir(file, found, problem); }
-                else {
+                else if (stat.isFile()) {
                     let finfo: Finfo = { 
-                            fname: file, size: stat.size, hash: null }
+                        fname: file, size: stat.size, hash: null }
                     todo += 1;
                     found(finfo, problem); 
                 }
