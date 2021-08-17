@@ -43,11 +43,15 @@ const walkdir = (
 
         list.forEach((file: string) => {
             file = path.resolve(dir, file);
-            fs.stat(file, (err2, stat) => {
+            fs.lstat(file, (err2, stat) => {
                 if (err2) { 
                     problem(err, file); }
                 else if (stat && stat.isDirectory()) {
                     walkdir(file, found, problem); }
+                else if (stat.isSymbolicLink()) {
+                    // Skip these
+                    problem(null, `Skipping symlink ${file}`);
+                }
                 else if (stat.isFile()) {
                     let finfo: Finfo = { 
                         fname: file, size: stat.size, hash: null }

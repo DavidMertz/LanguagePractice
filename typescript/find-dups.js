@@ -61,14 +61,18 @@ var walkdir = function (dir, found, problem) {
         }
         list.forEach(function (file) {
             file = path.resolve(dir, file);
-            fs.stat(file, function (err2, stat) {
+            fs.lstat(file, function (err2, stat) {
                 if (err2) {
                     problem(err, file);
                 }
                 else if (stat && stat.isDirectory()) {
                     walkdir(file, found, problem);
                 }
-                else {
+                else if (stat.isSymbolicLink()) {
+                    // Skip these
+                    problem(null, "Skipping symlink " + file);
+                }
+                else if (stat.isFile()) {
                     var finfo = {
                         fname: file, size: stat.size, hash: null
                     };
