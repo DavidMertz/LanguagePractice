@@ -1,6 +1,7 @@
 #!/bin/bash
 
-echo "=== File 'data' is one billion bytes ==="
+echo "Create file 'data' as one billion bytes..."
+head -c1000000000 /dev/urandom > data
 
 echo
 echo "/usr/bin/sha1sum"
@@ -21,3 +22,10 @@ echo "$PWD/golang/sha1sum/sha1sum"
 echo
 echo "$PWD/rust/sha1sum/target/release/sha1sum"
 /usr/bin/time -f "%e seconds" rust/sha1sum/target/release/sha1sum data
+
+echo
+cd typescript >/dev/null
+tsc sha1sum.ts
+cd - >/dev/null
+echo "$PWD/typescript/sha1sum.ts"
+/usr/bin/time -f "%e seconds" typescript/sha1sum.js data

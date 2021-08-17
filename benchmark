@@ -3,7 +3,19 @@ echo "Each language reports file count and time elapsed for CONDA_PREFIX"
 echo
 
 JULIA_NUM_THREADS=$(nproc)
+NODE_OPTIONS="--max-old-space-size=8192"
 CP=$CONDA_PREFIX
+
+echo -n "TypeScript ->.js  "
+cd typescript >/dev/null
+tsc find-dups.ts
+cd - >/dev/null
+start=$(date +%s)
+typescript/find-dups.js $CP 2>/dev/null >find-dups.typescript
+dups=$(grep '^  ' find-dups.typescript | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
 
 echo -n "Golang            "
 start=$(date +%s)
@@ -13,19 +25,19 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "Python (serial)   "
-start=$(date +%s)
-python/find-dups -m1 -i $CP >find-dups.python 2>/dev/null
-dups=$(grep '^  ' find-dups.python | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
 echo -n "Python (parallel) "
 start=$(date +%s)
 python/find-dups -m1 -i -p $CP >find-dups.pyparallel 2>/dev/null
 dups=$(grep '^  ' find-dups.pyparallel | wc -l)
 end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "Python (serial)   "
+start=$(date +%s)
+python/find-dups -m1 -i $CP >find-dups.python 2>/dev/null
+dups=$(grep '^  ' find-dups.python | wc -l)
+end=$(date +%)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
