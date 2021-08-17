@@ -14,7 +14,7 @@ Checkmarks used to indicate at least a reasonable first version of specified too
 - [x] Rust
 - [x] Go
 - [x] Julia
-- [ ] TypeScript
+- [x] TypeScript
 - [ ] Haskell
 - [ ] Ruby
 - [ ] Kotlin (JVM tooling is PITA; back-burner)

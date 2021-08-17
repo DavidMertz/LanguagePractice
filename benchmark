@@ -38,17 +38,6 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "TypeScript ->.js  "
-cd typescript >/dev/null
-tsc find-dups.ts
-cd - >/dev/null
-start=$(date +%s)
-typescript/find-dups.js $CP 2>/dev/null >find-dups.typescript
-dups=$(grep '^  ' find-dups.typescript | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
 echo -n "Rust (rust-crypto)"
 start=$(date +%s)
 rust/find-dups-rust-crypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
@@ -61,6 +50,17 @@ echo -n "Rust (RustCrypto) "
 start=$(date +%s)
 rust/find-dups-RustCrypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
 dups=$(grep '^  ' find-dups.rust | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "TypeScript ->.js  "
+cd typescript >/dev/null
+tsc find-dups.ts
+cd - >/dev/null
+start=$(date +%s)
+typescript/find-dups.js $CP 2>/dev/null >find-dups.typescript
+dups=$(grep '^  ' find-dups.typescript | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
