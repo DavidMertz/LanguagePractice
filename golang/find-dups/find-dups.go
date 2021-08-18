@@ -28,6 +28,8 @@ import (
     "sync"
     "path/filepath"
     "crypto/sha1"
+    "golang.org/x/text/language"
+    "golang.org/x/text/message"
 )
 
 type Finfo struct {
@@ -35,6 +37,9 @@ type Finfo struct {
     abspath string
     hash [20]byte
 }
+
+// Let's count the total hashes done
+var hashes_performed int = 0
 
 func WalkDir(dir string, c chan Finfo) error {
     return filepath.Walk(dir,
@@ -64,6 +69,7 @@ func FillHash(info Finfo, sizeOnly int, hashGroup *sync.WaitGroup) Finfo {
         // i.e. perhaps skip work of large SHA calculation
         if (info.fsize <= int64(sizeOnly)) {
             info.hash = sha1.Sum(content)
+            hashes_performed += 1
         }
     }
     hashGroup.Done()
@@ -123,12 +129,14 @@ func main() {
     flag.Parse()
     dir := flag.Args()[0]
 
+    p := message.NewPrinter(language.English)
+
     if (verbose) {
-        fmt.Fprintf(os.Stderr, "size-only %d\n", sizeOnly)
-        fmt.Fprintf(os.Stderr, "max-size %d\n", maxSize)
-        fmt.Fprintf(os.Stderr, "min-size %d\n", minSize)
-        fmt.Fprintf(os.Stderr, "verbose %t\n", verbose)
-        fmt.Fprintf(os.Stderr, "directory %s\n", dir)
+        p.Fprintf(os.Stderr, "size-only %d\n", sizeOnly)
+        p.Fprintf(os.Stderr, "max-size %d\n", maxSize)
+        p.Fprintf(os.Stderr, "min-size %d\n", minSize)
+        p.Fprintf(os.Stderr, "verbose %t\n", verbose)
+        p.Fprintf(os.Stderr, "directory %s\n", dir)
     }
 	// Mapping from size to {abspath, sha1}  
 	sizes := make(map[int64][]Finfo)
@@ -148,6 +156,10 @@ func main() {
                     }
                 }
                 ShowDups(sizes, dupsizes, minSize, maxSize, sizeOnly)
+                if (verbose) {
+                    p.Fprintf(os.Stderr, 
+                            "Hashes performed %d\n", hashes_performed)
+                }
                 return
         }
     }

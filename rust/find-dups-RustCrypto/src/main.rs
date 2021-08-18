@@ -27,8 +27,10 @@ use std::vec::Vec;
 use walkdir::WalkDir;
 use sha1::Digest;
 use clap::{Arg, App};
+use num_format::{Locale, ToFormattedString};
 
-fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
+fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) -> u32 {
+    let mut hashcount: u32 = 0;
     for (size, files) in (&filesizes).iter().rev() {
         if files.len() > 1 {
             let mut samesize = HashMap::<String, Vec::<String>>::new();
@@ -42,6 +44,7 @@ fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
                 };
                 let digest = sha1::Sha1::digest(&content);
                 let hexdigest = format!("{:x}", digest);
+                hashcount += 1;
 
                 let mut files = Vec::<String>::new();
                 match samesize.get(&hexdigest) {
@@ -61,6 +64,7 @@ fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) {
             }
         }
     }
+    return hashcount;
 }
 
 fn main() {
@@ -110,7 +114,7 @@ fn main() {
                 eprintln!("An integer is required for max-size"); 0 },
         }
     };
-    let _size_only = match args.value_of("sizeOnly") {
+    let size_only = match args.value_of("sizeOnly") {
         None => 1_000_000_000,
         Some(s) => match s.parse::<u64>() {
             Ok(n) => n,
@@ -120,7 +124,11 @@ fn main() {
     };
     let verbose = args.is_present("verbose");
     if verbose {
-        eprintln!("Arguments given are: {:#?}", args);
+        eprintln!("verbose {}", verbose);
+        eprintln!("min-size {}", min_size.to_formatted_string(&Locale::en));
+        eprintln!("max-size {}", max_size.to_formatted_string(&Locale::en));
+        eprintln!("size-only {}", size_only.to_formatted_string(&Locale::en));
+        eprintln!("rootdir {}", dir);
     }
 
     let mut filesizes = BTreeMap::<u64, Vec::<String>>::new();
@@ -148,5 +156,10 @@ fn main() {
             filesizes.insert(meta.len(), files);
         }
     }
-    show_dups(filesizes);
+    let hashcount = show_dups(filesizes);
+
+    if verbose {
+        eprintln!("Hashes performed: {}", 
+                  hashcount.to_formatted_string(&Locale::en));
+    }
 }

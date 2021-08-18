@@ -24,6 +24,10 @@ echo "$PWD/rust/sha1sum/target/release/sha1sum"
 /usr/bin/time -f "%e seconds" rust/sha1sum/target/release/sha1sum data
 
 echo
+echo "$PWD/haskell/sha1sum"
+/usr/bin/time -f "%e seconds" haskell/sha1sum data
+
+echo
 cd typescript >/dev/null
 tsc sha1sum.ts
 cd - >/dev/null

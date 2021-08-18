@@ -10,6 +10,7 @@ edition = "2018"
 walkdir = "2"
 sha-1 = "0.9.7"
 clap = "2"
+num-format = "0.4.0"
 
 [profile.dev]
 opt-level = 0
