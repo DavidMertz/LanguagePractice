@@ -38,6 +38,14 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
+echo -n "Haskell           "
+start=$(date +%s)
+haskell/find-dups $CP 2>/dev/null >find-dups.haskell
+dups=$(grep '^  ' find-dups.haskell | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
 echo -n "Rust (rust-crypto)"
 start=$(date +%s)
 rust/find-dups-rust-crypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
