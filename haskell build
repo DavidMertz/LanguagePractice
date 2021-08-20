@@ -1,0 +1,4 @@
+#!/bin/bash
+
+FLAGS="-feager-blackholing -n$(nproc)
+ghc

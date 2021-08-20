@@ -14,6 +14,22 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
+echo -n "Haskell           "
+start=$(date +%s)
+haskell/find-dups $CP 2>/dev/null >find-dups.haskell
+dups=$(grep '^  ' find-dups.haskell | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "Python (scandir)  "
+start=$(date +%s)
+python/find-dups -m1 -i -p -s $CP >find-dups.pyscandir 2>/dev/null
+dups=$(grep '^  ' find-dups.pyscandir | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
 echo -n "Python (parallel) "
 start=$(date +%s)
 python/find-dups -m1 -i -p $CP >find-dups.pyparallel 2>/dev/null
@@ -34,14 +50,6 @@ echo -n "Julia             "
 start=$(date +%s)
 julia/find-dups $CP 2>/dev/null >find-dups.julia 
 dups=$(grep '^  ' find-dups.golang | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
-echo -n "Haskell           "
-start=$(date +%s)
-haskell/find-dups $CP 2>/dev/null >find-dups.haskell
-dups=$(grep '^  ' find-dups.haskell | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"

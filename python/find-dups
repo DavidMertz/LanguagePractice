@@ -20,7 +20,7 @@ same filename.
 # below.
 
 from sys import maxsize, stderr, stdout
-from os import remove, walk, readlink, cpu_count
+from os import remove, walk, readlink, cpu_count, scandir
 from os.path import islink, abspath
 from fnmatch import fnmatch
 from os.path import isdir, exists, join, isfile, getsize
@@ -50,6 +50,9 @@ def main():
     parser.add_option('-p', '--parallel', action="store_true",
                       default=False,
                       help="Attempt to use parallel SHA1 calculations")
+    parser.add_option('-s', '--scandir', action="store_true",
+                      default=False,
+                      help="Use os.scandir() rather than os.walk()")
     parser.add_option('-g', '--glob', type="str", default="*",
                       help="Limit matches to glob pattern")
     parser.add_option('-v', '--verbose', action="store_true",
@@ -74,6 +77,27 @@ def find_files(args, pat='*'):
                         yield join(root, f)
         else:
             yield dir
+
+def scan_files(args, opts):
+    for dir in args:
+        if isdir(dir):
+            for entry in scandir(dir):
+                if entry.is_dir(follow_symlinks=False):
+                    yield from scan_files([entry.path], opts)
+                elif entry.is_file(follow_symlinks=not opts.ignore_symlinks):
+                    if fnmatch(entry.name, opts.glob):
+                        try:
+                            size = entry.stat().st_size
+                            yield (entry.path, size)
+                        except FileNotFoundError as err:
+                            if opts.verbose:
+                                print(err, file=stderr)
+
+def subdirs(args):
+    """Yield directory names not starting with '.' under given path."""
+    for entry in os.scandir(path):
+        if entry.is_dir():
+            yield entry.name
 
 
 def hash_content(f):
@@ -133,14 +157,21 @@ def find_duplicates(dirs, opts):
         c.execute('create table files_by_size (size int, fname text)')
         if opts.verbose:
             print("Checking sizes (each '.' is 100k files):", file=stderr)
-        for fn in find_files(dirs, opts.glob):
-            if not isfile(fn):
-                continue
-            count += 1
-            sz = getsize(fn)
-            c.execute('insert into files_by_size values (?, ?)', (sz, fn))
-            if opts.verbose and count % 100000 == 0:
-                stderr.write('.')
+        if opts.scandir:
+            for fn, sz in scan_files(dirs, opts):
+                count += 1
+                c.execute('insert into files_by_size values (?, ?)', (sz, fn))
+                if opts.verbose and count % 100000 == 0:
+                    stderr.write('.')
+        else:
+            for fn in find_files(dirs, opts.glob):
+                if not isfile(fn):
+                    continue
+                count += 1
+                sz = getsize(fn)
+                c.execute('insert into files_by_size values (?, ?)', (sz, fn))
+                if opts.verbose and count % 100000 == 0:
+                    stderr.write('.')
         conn.commit()
         if opts.verbose:
             print("\nFound sizes on %d files..." % count, file=stderr)

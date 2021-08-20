@@ -1,10 +1,12 @@
 -- Thanks to https://stackoverflow.com/users/7203016/k-a-buhr
 -- for providing guidance on a much better way to structure this tool
-import System.Directory (getFileSize, getHomeDirectory)
+import System.Directory (getFileSize, getHomeDirectory, pathIsSymbolicLink)
 import System.Directory.PathWalk (pathWalkLazy)
 import System.Environment (getArgs)
 import System.FilePath ((</>), addTrailingPathSeparator, normalise)
 import System.Path.NameManip (guess_dotdot, absolute_path)
+import System.Posix.Files (getFileStatus, fileID)
+import System.Posix.Types (CIno)
 import Data.List (isPrefixOf)
 import Data.Map.Strict (Map)
 import Data.Maybe (fromJust)
@@ -12,25 +14,17 @@ import Data.Foldable (for_)
 import Data.Typeable (typeOf)
 import qualified Data.ByteString.Char8 as Bytes
 import qualified Data.Map.Strict as Map
-import Control.Monad (mapM_, forM_)
+import Control.Monad (mapM_, forM_, filterM, liftM)
+import Control.Monad.IO.Class (liftIO)
 import Crypto.Hash -- Implicit, cannot list SHA1 here?!
-
--- We are building in assumption of SHA1 digest length
-data Sha1 = Sha1 String deriving (Show, Eq)
-
--- "getter" and "setter" for hashes
-sha1FromString :: String -> Maybe Sha1
-sha1FromString s | 40 /= length s = Nothing
-                 | otherwise     = Just (Sha1 s)
-
-stringFromSha1 :: Sha1 -> String
-stringFromSha1 (Sha1 s) = s
 
 -- File-info record
 data Finfo = Finfo { 
     fname :: String, 
     f_size :: Integer,   -- size of file
-    sha1 :: Digest SHA1 } deriving (Show, Eq)
+    sha1 :: Digest SHA1, -- fingerprint
+    inode :: CIno        -- inode on disk 
+    } deriving (Show, Eq)
 
 type BySize = Map Integer [Finfo]
 type ByHash = Map (Digest SHA1) [Finfo]
@@ -46,6 +40,16 @@ absolutize aPath
     pathMaybeWithDots <- absolute_path aPath
     return $ fromJust $ guess_dotdot pathMaybeWithDots
 
+-- Create Map from list of pairs, making dup vals into a list
+fromListWithDuplicates :: Ord k => [(k, v)] -> Map k [v]
+fromListWithDuplicates pairs = 
+    Map.fromListWith (++) [(k, [v]) | (k, v) <- pairs]
+
+-- Create Map from list of pairs, discarding vals with dup key
+fromListWithFirst :: Ord k => [(k, v)] -> Map k v
+fromListWithFirst pairs = 
+    Map.fromListWith (\a _ -> a) [(k, v) | (k, v) <- pairs]
+
 -- Create the BySize map
 getBySize :: FilePath -> IO BySize
 getBySize root = do
@@ -58,31 +62,33 @@ getBySize root = do
   -- convert it to a map, allowing duplicate keys
   return $ fromListWithDuplicates pairs
 
+-- Create the ByHash map on same-sized files
 groupByHash :: [Finfo] -> ByHash
 groupByHash finfos = 
     let bySha1 = [(sha1 finfo, finfo) | finfo <- finfos] 
     in fromListWithDuplicates bySha1
 
--- this is a little complicated, but standard
-fromListWithDuplicates :: Ord k => [(k, v)] -> Map k [v]
-fromListWithDuplicates pairs = 
-    Map.fromListWith (++) [(k, [v]) | (k, v) <- pairs]
-
+-- Lazily return (normal) files from rootdir
 getAllFiles :: FilePath -> IO [FilePath]
 getAllFiles root = do
   nodes <- pathWalkLazy root
   -- get file paths from each node
-  let files = [dir </> file | (dir, _, files) <- nodes, file <- files]
-  return files
+  let files = [dir </> f | (dir, _, files) <- nodes, f <- files]
+  normalFiles <- filterM (liftM not . pathIsSymbolicLink) files
+  print $ length files
+  print $ length normalFiles
+  return normalFiles
 
 -- The logic of processing files    
 getFinfo :: FilePath -> IO Finfo
 getFinfo path = do
-    abspath <- do absolutize path
-    size <- do getFileSize abspath
+    abspath <- absolutize path
+    size <- getFileSize abspath
     content <- Bytes.readFile abspath
+    fstat <- getFileStatus path
+    let inode = fileID fstat
     let sha1 = hashWith SHA1 content
-    let finfo = Finfo abspath size sha1
+    let finfo = Finfo abspath size sha1 inode
     return finfo
 
 -- Pring report on individual BySize record (if qualifying)
