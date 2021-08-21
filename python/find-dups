@@ -19,23 +19,26 @@ same filename.
 # commercial purposes, all without asking permission. See Other Information
 # below.
 
-from sys import maxsize, stderr, stdout
-from os import remove, walk, readlink, cpu_count, scandir
+from sys import maxsize, stderr, stdout, exit
+from os import remove, readlink, cpu_count, scandir
 from os.path import islink, abspath
 from fnmatch import fnmatch
 from os.path import isdir, exists, join, isfile, getsize
 from hashlib import sha1
 from itertools import groupby
+from collections import namedtuple
+from operator import itemgetter
 from multiprocessing import Pool
+import concurrent.futures
 import sqlite3
+from pprint import pprint as XXX
 
+# Keep together associated file information
+Finfo = namedtuple("Finfo", ["size", "path", "inode"])
 
 def main():
     import optparse
     parser = optparse.OptionParser(__doc__.strip())
-    parser.add_option('--size-only', type="int", default=maxsize,
-                      help="(Debugging) consider files a match on size "
-                           "alone if they are larger than SIZE_ONLY")
     parser.add_option('--use-checkpoint', action="store_true",
                       default=False,
                       help="Begin with stored intermediate results "
@@ -44,15 +47,9 @@ def main():
                       help="Ignore files larger than MAX_SIZE")
     parser.add_option('-m', '--min-size', type="int", default=0,
                       help="Ignore files smaller than MIN_SIZE")
-    parser.add_option('-i', '--ignore-symlinks', action="store_true",
+    parser.add_option('-l', '--enable-symlinks', action="store_true",
                        default=False,
-                       help="Do not treat symbolic links as duplicates")
-    parser.add_option('-p', '--parallel', action="store_true",
-                      default=False,
-                      help="Attempt to use parallel SHA1 calculations")
-    parser.add_option('-s', '--scandir', action="store_true",
-                      default=False,
-                      help="Use os.scandir() rather than os.walk()")
+                       help="Include symlinks in duplication report")
     parser.add_option('-g', '--glob', type="str", default="*",
                       help="Limit matches to glob pattern")
     parser.add_option('-v', '--verbose', action="store_true",
@@ -62,81 +59,82 @@ def main():
     if not args:
         parser.error("You must specify directories to search.")
 
-    # If we are using parallel style, create a pool once
-    if opts.parallel:
-        opts.parallel = Pool(processes=int(cpu_count()*0.75))
     find_duplicates(args, opts)
 
-
-def find_files(args, pat='*'):
-    for dir in args:
-        if isdir(dir):
-            for root, dirs, fnames in walk(dir):
-                for f in fnames:
-                    if fnmatch(f, pat):
-                        yield join(root, f)
-        else:
-            yield dir
 
 def scan_files(args, opts):
     for dir in args:
         if isdir(dir):
             for entry in scandir(dir):
-                if entry.is_dir(follow_symlinks=False):
+                if entry.is_dir(follow_symlinks=opts.enable_symlinks):
                     yield from scan_files([entry.path], opts)
-                elif entry.is_file(follow_symlinks=not opts.ignore_symlinks):
+                elif entry.is_file(follow_symlinks=opts.enable_symlinks):
                     if fnmatch(entry.name, opts.glob):
                         try:
+                            path = entry.path
                             size = entry.stat().st_size
-                            yield (entry.path, size)
+                            inode = entry.inode()
+                            yield Finfo(path, size, inode)
                         except FileNotFoundError as err:
                             if opts.verbose:
                                 print(err, file=stderr)
 
-def subdirs(args):
-    """Yield directory names not starting with '.' under given path."""
-    for entry in os.scandir(path):
-        if entry.is_dir():
-            yield entry.name
 
-
-def hash_content(f):
-    if islink(f):
-        # No need to spend SHA1 time on symlink
-        return ("_SYMLINK" , f)
+def hash_content(finfo):
     try:
-        with open(f, 'rb') as fh:
+        with open(finfo.path, 'rb') as fh:
             content = fh.read()
-            return (sha1(content).hexdigest(), f)
+            return (sha1(content).hexdigest(), finfo.path)
     except IOError as s:
         print(s, file=stderr)
-        return ("_ERROR", f)
+        return ("_ERROR", finfo.path)
 
 
-def parallel_hash(fnames, pool=None):
-    if pool is none:
-        # Shouldn't hit this path, but just in case...
-        pool = Pool(processes=cpu_count()//2)
-    return pool.map(hash_content, fnames)
+def parallel_hash(finfos, pool=None):
+    unique_inodes = [f[0] for _, f in group_by_key(finfos, 2, Finfo)
+                      if len(f) == 1]
+    dup_inodes = [f for _, f in group_by_key(finfos, key=2)
+                   if len(f) > 1]
+
+    # Use the pool to parallelize distinct inodes
+    hashes = pool.map(hash_content, unique_inodes)
+
+    # Might add to hashes if we have hardlink sets
+    # Note: there COULD be many such inode sets, which are calculated
+    #     serially.  However, the performance difference between serial
+    #     and parallel is so small that it matters little.
+    for dup_inode in dup_inodes:
+        finfo = Finfo(*dup_inode[0])  # Use the first one
+        digest, _ = hash_content(finfo)
+        more_hashes = [(digest, dup[1]) for dup in dup_inode]
+        hashes.extend(more_hashes)
+
+    return hashes
 
 
-def group_pairs(pairs):
+def group_by_key(records, key=0, val_type=lambda *x: tuple(x)):
     """Combine adjacent second items in pairs
 
     This function is passed an interable each of whose values is a pair;
     it yields a sequence of pairs whose first element is the identical
     first element from the original pairs, and whose second element is a
-    list of second elements corresponding to the same first element. Only
+    list of tail elements corresponding to the same first element. Only
     adjacent pairs sharing a first element are grouped together, so if the
     grouping is required to be global, you should pass in 'sorted(pairs)'
     rather than the raw iterable.  E.g.:
 
-    >>> things = [(1,'foo'), (1,'bar'), (2, 'baz')]
-    >>> group_pairs(things)
-    [(1,['foo','bar']), (2, ['baz'])]
+      >>> things = [(1,'foo', 17), (1,'bar', 119), (2, 'baz', 43)]
+      >>> list(group_by_key(things))
+      [(1, [(1, 'foo', 17), (1, 'bar', 119)]), (2, [(2, 'baz', 43)])]
+      >>> Finfo = namedtuple("Finfo", ["size", "path", "inode"])
+      >>> list(group_by_key(things, val_type=Finfo))
+      [(1, [Finfo(size=1, path='foo', inode=17),
+            Finfo(size=1, path='bar', inode=119)]),
+       (2, [Finfo(size=2, path='baz', inode=43)])]
     """
-    for idx, vals in groupby(pairs, lambda pair: pair[0]):
-        yield (idx, [v[1] for v in vals])
+    records = sorted(records, key=itemgetter(key))
+    for idx, vals in groupby(records, itemgetter(key)):
+        yield (idx, [val_type(*v) for v in vals])
 
 
 def find_duplicates(dirs, opts):
@@ -154,81 +152,48 @@ def find_duplicates(dirs, opts):
             remove('sz.db')
         conn = sqlite3.connect('sz.db')
         c = conn.cursor()
-        c.execute('create table files_by_size (size int, fname text)')
+        sql = 'CREATE TABLE files_by_size (size INT, fname TEXT, inode INT)'
+        c.execute(sql)
         if opts.verbose:
             print("Checking sizes (each '.' is 100k files):", file=stderr)
-        if opts.scandir:
-            for fn, sz in scan_files(dirs, opts):
-                count += 1
-                c.execute('insert into files_by_size values (?, ?)', (sz, fn))
-                if opts.verbose and count % 100000 == 0:
-                    stderr.write('.')
-        else:
-            for fn in find_files(dirs, opts.glob):
-                if not isfile(fn):
-                    continue
-                count += 1
-                sz = getsize(fn)
-                c.execute('insert into files_by_size values (?, ?)', (sz, fn))
-                if opts.verbose and count % 100000 == 0:
-                    stderr.write('.')
+        sql_insert = 'INSERT INTO files_by_size values (?, ?, ?)'
+        for fn, sz, inode in scan_files(dirs, opts):
+            count += 1
+            c.execute(sql_insert, (sz, fn, inode))
+            if opts.verbose and count % 100000 == 0:
+                stderr.write('.')
         conn.commit()
         if opts.verbose:
             print("\nFound sizes on %d files..." % count, file=stderr)
 
-    c.execute('''select size, fname from files_by_size
-                 where size<=? and size>=?
-                 order by size desc''', (opts.max_size, opts.min_size))
+    c.execute('''SELECT size, fname, inode FROM files_by_size
+                 WHERE size<=? and size>=?
+                 ORDER BY size desc''', (opts.max_size, opts.min_size))
 
     if opts.verbose:
         print("Grouping files by SHA1 (each '.' is 5k groups):", file=stderr)
 
+    # Need process pool
+    pool = Pool(processes=int(cpu_count()*0.75))
     distincts = 0
-    null_header = False
     empties = 0
-    for sz, fnames in group_pairs(c):
-        # We might wish to exclude symbolic links
-        if opts.ignore_symlinks:
-            fnames = [f for f in fnames if not islink(f)]
 
-        if sz == 0:
-            if not null_header:
-                print("Size: 0 | Content: ''")
-                null_header = True
-            for f in fnames:
-                print(' ', f)
-                empties += 1
-        else:
-            # We have accumulated some dups that need to be printed
-            if len(fnames) > 1:
-                if sz <= opts.size_only:
-                    hashes = [hash_content(f) for f in fnames]
-                elif opts.parallel:
-                    hashes = parallel_hash(fnames, pool=opts.parallel)
-                else:
-                    hashes = []  # Empty hashes, report handled here
-                    print('Size:', sz, '| Size:', sz)
-                    for f in fnames:
-                        print(' ', f)
-                    distincts += 1
-
-                for idx, vals in group_pairs(sorted(hashes)):
-                    if len(vals) > 1:
-                        distincts +=1
-                        if sz > 40:
-                            print('Size:', sz, '| SHA1:', idx)
+    for sz, finfos in group_by_key(c, 0, Finfo):
+        # We have accumulated some dups that need to be printed
+        if len(finfos) > 1:
+            hashes = parallel_hash(finfos, pool=pool)
+            for hash, vals in group_by_key(hashes):
+                if len(vals) > 1:
+                    distincts +=1
+                    print('Size:', sz, '| SHA1:', hash)
+                    for _, path in vals:
+                        if islink(path):
+                            ln = "-> " + readlink(path)
+                            print(' ', abspath(path), ln)
                         else:
-                            with open(vals[0], 'rb') as fh:
-                                content = fh.read()
-                            print('Size:', sz, '| Content:', repr(content))
-                        for fn2 in vals:
-                            if islink(fn2):
-                                ln = "-> " + readlink(fn2)
-                                print(' ', abspath(fn2), ln)
-                            else:
-                                print(' ', abspath(fn2))
-                        if opts.verbose and distincts % 5000 == 0:
-                            stderr.write('.')
+                            print(' ', abspath(path))
+                    if opts.verbose and distincts % 5000 == 0:
+                        stderr.write('.')
 
     if opts.verbose:
         print("\nFound %d empty files"% empties, file=stderr)
