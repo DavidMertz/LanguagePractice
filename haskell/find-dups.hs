@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 -- Thanks to https://stackoverflow.com/users/7203016/k-a-buhr
 -- for providing guidance on a much better way to structure this tool
 import System.Directory (getFileSize, getHomeDirectory, pathIsSymbolicLink)
@@ -50,18 +52,6 @@ fromListWithFirst :: Ord k => [(k, v)] -> Map k v
 fromListWithFirst pairs = 
     Map.fromListWith (\a _ -> a) [(k, v) | (k, v) <- pairs]
 
--- Create the BySize map
-getBySize :: FilePath -> IO BySize
-getBySize root = do
-  -- first, get all the files
-  files <- getAllFiles root
-  -- convert them all to finfos
-  finfos <- mapM getFinfo files
-  -- get a list of size/finfo pairs
-  let pairs = [(f_size finfo, finfo) | finfo <- finfos]
-  -- convert it to a map, allowing duplicate keys
-  return $ fromListWithDuplicates pairs
-
 -- Create the ByHash map on same-sized files
 groupByHash :: [Finfo] -> ByHash
 groupByHash finfos = 
@@ -69,15 +59,34 @@ groupByHash finfos =
     in fromListWithDuplicates bySha1
 
 -- Lazily return (normal) files from rootdir
-getAllFiles :: FilePath -> IO [FilePath]
-getAllFiles root = do
+getAllFilesNoSymDirs :: FilePath -> IO [FilePath]
+getAllFilesNoSymDirs root = pathWalkLazy root
+    -- remove dirs that are symlinks
+    >>= filterM (\(dir, _, _) -> fmap not $ pathIsSymbolicLink dir) 
+    -- flatten to list of files
+    >>= return . concat . map (
+        \(dir, _, files) -> map (\f -> dir </> f) files) 
+    -- remove files that are symlinks
+    >>= filterM (fmap not . pathIsSymbolicLink)
+
+-- Lazily return (normal) files from rootdir
+getAllFilesNoSymFiles :: FilePath -> IO [FilePath]
+getAllFilesNoSymFiles root = do
+    nodes <- pathWalkLazy root
+    -- get file paths from each node
+    let files = [dir </> file | (dir, _, files) <- nodes,
+                                file <- files]
+    normalFiles <- filterM (liftM not . pathIsSymbolicLink) files
+    return normalFiles
+
+-- Lazily return all files from rootdir
+getAllFilesRaw :: FilePath -> IO [FilePath]
+getAllFilesRaw root = do
   nodes <- pathWalkLazy root
   -- get file paths from each node
-  let files = [dir </> f | (dir, _, files) <- nodes, f <- files]
-  normalFiles <- filterM (liftM not . pathIsSymbolicLink) files
-  print $ length files
-  print $ length normalFiles
-  return normalFiles
+  let files = [dir </> file | (dir, _, files) <- nodes,
+                              file <- files]
+  return files
 
 -- The logic of processing files    
 getFinfo :: FilePath -> IO Finfo
@@ -106,6 +115,20 @@ printSizeRecord (size, finfos)
     | otherwise = do
       return ()
 
+-- Create the BySize map
+getAllFiles = getAllFilesNoSymDirs
+
+getBySize :: FilePath -> IO BySize
+getBySize root = do
+    -- first, get all the files
+    files <- getAllFiles root
+    -- convert them all to finfos
+    finfos <- mapM getFinfo files
+    -- get a list of size/finfo pairs
+    let pairs = [(f_size finfo, finfo) | finfo <- finfos]
+    -- convert it to a map, allowing duplicate keys
+    return $ fromListWithDuplicates pairs
+
 -- The "main" function walks directory with callback  
 main :: IO ()
 main = do
@@ -114,4 +137,12 @@ main = do
     bySize <- getBySize rootdir
     let sizeRecords = reverse $ Map.assocs bySize
     mapM_ printSizeRecord sizeRecords
+
+    -- XXX: debugging
+--    files <- getAllFiles rootdir
+--    putStrLn ("getAllFiles finds:     " ++ show (length files))
+--    files' <- getAllFilesNoSymFiles rootdir
+--    putStrLn ("getAllFilesNoSymFiles: " ++ show (length files'))
+--    files'' <- getAllFilesNoSymDirs rootdir
+--    putStrLn ("getAllFilesNoSymDirs:  " ++ show (length files''))
 
