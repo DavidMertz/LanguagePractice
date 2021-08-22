@@ -79,6 +79,8 @@ getAllFilesRaw root = do
                               file <- files]
   return files
 
+-- This version provided on StackOverflow by ChrisB at:
+-- stackoverflow.com/questions/68869527/getallfiles-but-not-symlinks/
 -- Lazily return (normal) files from (normal) rootdir
 getAllFilesNoSymLinks :: FilePath -> IO [FilePath]
 getAllFilesNoSymLinks path = do
