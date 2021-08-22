@@ -33,10 +33,6 @@ function parse_commandline()
             default = 1
             arg_type = Int
             help = "Ignore files smaller than min-size"
-        "--size-only"
-            default = 1_000_000_000
-            arg_type = Int
-            help = "Files match is same-size larger than size-only"
         "--verbose", "-v"
             action = :store_true
             help = "Display progress information on STDERR"
@@ -47,25 +43,42 @@ function parse_commandline()
     parse_args(s)
 end
 
+
 "Iterate dict of files grouped by size and find duplicate contents"
 function show_dups(by_size)
+    lookups_by_inode = 0
+    hashes_performed = 0
     digest_lock = Threads.SpinLock()
     sizes = sort(collect(keys(by_size)), rev=true)
     for size in sizes
-        paths = by_size[size]
+        finfos = by_size[size]
         # If not a duplicate, continue
-        if length(paths) < 2 continue end
+        if length(finfos) < 2 continue end
       
         # Within this size, create hash digests in parallel
-        nfiles = length(paths)
         digests = Dict{String, String}()
-        Threads.@threads for i ∈ 1:nfiles
-            content = UInt8[]
-            readbytes!(open(paths[i], "r"), content, Inf)
-            digest = bytes2hex(sha1(content))
-            lock(digest_lock)
-            digests[paths[i]] = digest
-            unlock(digest_lock)
+        # We might have already hashed this inode, reuse if so
+        inodes = Dict{Int64, String}()
+
+        Threads.@threads for (path, inode) ∈ finfos
+            if inode ∉ keys(inodes)
+                content = UInt8[]
+                open(path, "r") do fh
+                    readbytes!(fh, content, Inf)
+                end
+                digest = bytes2hex(sha1(content))
+                lock(digest_lock)
+                inodes[inode] = digest
+                digests[path] = digest
+                hashes_performed += 1
+                unlock(digest_lock)
+            else
+                lock(digest_lock)
+                digest = inodes[inode]
+                digests[path] = digest
+                lookups_by_inode += 1
+                unlock(digest_lock)
+            end
         end
 
         # Condense the hashes into by_hash dictionary
@@ -76,44 +89,57 @@ function show_dups(by_size)
         end
 
         # Produce the report for this file size (if any)
-        for (digest, paths) in by_hash
-            if length(paths) < 2 continue end
+        for (digest, finfos) in by_hash
+            if length(finfos) < 2 continue end
             println("Size: $(size) | SHA1: $(digest)")
-            for path in paths
+            for (path, inode) in finfos
                 println("  $(path)")
             end
         end
     end
+    # Return any information we might want in verbose channel
+    return Dict("lookups by inode" => lookups_by_inode,
+                "hashes performed" => hashes_performed)
 end
 
 "Generate mapping of common size to filenames, then call show_dups()"
 function main()
-    by_size = Dict{Int, Array}()
+    by_size = Dict{Int, Array{Tuple{String, Int64}}}()
     args = parse_commandline()
     maxsize = args["max-size"]
     minsize = args["min-size"]
 
 	if args["verbose"]
-        println(stderr, "Threads: $(Threads.nthreads())")
+        println(stderr, "Cores => $(Threads.nthreads())")
         for (k, v) in args
-            println(stderr, "$(repr(k)) => $(repr(v))")
+            println(stderr, "$(k) => $(repr(v))")
         end
 	end
 
-	for (root, dirs, files) in walkdir(args["rootdir"])
+    rootdir = args["rootdir"]
+	for (root, _, files) in walkdir(rootdir, follow_symlinks=false)
 		for file in files
             path = abspath(joinpath(root, file))
-            size = stat(path).size
+            # Ignore symlinks
+            if islink(path) continue end
             # Ignore if outside size bounds
+            size = stat(path).size
             if (size > maxsize) || (size < minsize) continue end
+            # Store the inode as well
+            inode = stat(path).inode
             # Put empty array in by_size if size not present
             if size ∉ keys(by_size) by_size[size] = [] end
             # Add the current path to the by_size
-            push!(by_size[size], path)
+            push!(by_size[size], (path, inode))
 		end
 	end
 
-    show_dups(by_size)
+    summary = show_dups(by_size)
+    if args["verbose"]
+        for (k, v) in summary
+            println(stderr, "$(k) => $(repr(v))")
+        end
+   end
 end
 
 main()

@@ -27,7 +27,7 @@ echo " | dups $dups | $secs"
 echo -n "| Julia             "
 start=$(date +%s)
 julia/find-dups $CP 2>/dev/null >find-dups.julia 
-dups=$(grep '^  ' find-dups.golang | wc -l)
+dups=$(grep '^  ' find-dups.julia | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
@@ -41,17 +41,23 @@ secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
 echo -n "| Rust (rust-crypto)"
+cd rust/find-dups-rust-crypto >/dev/null
+cargo build --release 2>/dev/null >/dev/null
+cd - >/dev/null
 start=$(date +%s)
-rust/find-dups-rust-crypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
-dups=$(grep '^  ' find-dups.rust | wc -l)
+rust/find-dups-rust-crypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust1
+dups=$(grep '^  ' find-dups.rust1 | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
 echo -n "| Rust (RustCrypto) "
+cd rust/find-dups-RustCrypto >/dev/null
+cargo build --release 2>/dev/null >/dev/null
+cd - >/dev/null
 start=$(date +%s)
-rust/find-dups-RustCrypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
-dups=$(grep '^  ' find-dups.rust | wc -l)
+rust/find-dups-RustCrypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust2
+dups=$(grep '^  ' find-dups.rust2 | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
