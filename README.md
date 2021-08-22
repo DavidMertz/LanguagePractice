@@ -70,7 +70,7 @@ Each language reports file count and time elapsed for CONDA_PREFIX
 | Haskell            | dups 407839 | 66 secs
 | Rust (rust-crypto) | dups 407839 | 169 secs
 | Rust (RustCrypto)  | dups 407839 | 196 secs
-| TypeScript ->.js   | dups 407839 | 343 secs
+| TypeScript ->.js   | dups 407839 | 332 secs
 
 To be fair, an optimization was noticed that has only been implemented in
 Python and Julia so far (possibly in a slightly better way in Julia).
