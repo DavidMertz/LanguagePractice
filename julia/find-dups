@@ -48,51 +48,50 @@ end
 function show_dups(by_size)
     lookups_by_inode = 0
     hashes_performed = 0
-    digest_lock = Threads.SpinLock()
     sizes = sort(collect(keys(by_size)), rev=true)
-    for size in sizes
+
+    for size ∈ sizes
         finfos = by_size[size]
         # If not a duplicate, continue
         if length(finfos) < 2 continue end
       
         # Within this size, create hash digests in parallel
         digests = Dict{String, String}()
-        # We might have already hashed this inode, reuse if so
-        inodes = Dict{Int64, String}()
 
-        Threads.@threads for (path, inode) ∈ finfos
-            if inode ∉ keys(inodes)
-                content = UInt8[]
-                open(path, "r") do fh
-                    readbytes!(fh, content, Inf)
-                end
-                digest = bytes2hex(sha1(content))
-                lock(digest_lock)
-                inodes[inode] = digest
-                digests[path] = digest
-                hashes_performed += 1
-                unlock(digest_lock)
-            else
-                lock(digest_lock)
-                digest = inodes[inode]
-                digests[path] = digest
+        # Do we have duplicate inodes?
+        inodes = Dict{Int64, Array{String}}()
+        for (path, inode) ∈ finfos
+            if inode ∉ keys(inodes) inodes[inode] = [] end
+            push!(inodes[inode], path)
+        end
+
+        for (inode, paths) ∈ inodes
+            path = paths[1]
+            content = UInt8[]
+            open(path, "r") do fh
+                readbytes!(fh, content, Inf)
+            end
+            digest = bytes2hex(sha1(content))
+            digests[path] = digest
+            hashes_performed += 1
+            for other_path ∈ paths[2:end]
+                digests[other_path] = digest
                 lookups_by_inode += 1
-                unlock(digest_lock)
             end
         end
 
         # Condense the hashes into by_hash dictionary
         by_hash = Dict{String, Array{String}}()
-        for (path, digest) in digests
+        for (path, digest) ∈ digests
             if digest ∉ keys(by_hash) by_hash[digest] = [] end
             push!(by_hash[digest], path)
         end
 
         # Produce the report for this file size (if any)
-        for (digest, finfos) in by_hash
+        for (digest, finfos) ∈ by_hash
             if length(finfos) < 2 continue end
             println("Size: $(size) | SHA1: $(digest)")
-            for (path, inode) in finfos
+            for (path, inode) ∈ finfos
                 println("  $(path)")
             end
         end
@@ -110,15 +109,15 @@ function main()
     minsize = args["min-size"]
 
 	if args["verbose"]
-        println(stderr, "Cores => $(Threads.nthreads())")
-        for (k, v) in args
+        println(stderr, "Cores (not used) => $(Threads.nthreads())")
+        for (k, v) ∈ args
             println(stderr, "$(k) => $(repr(v))")
         end
 	end
 
     rootdir = args["rootdir"]
-	for (root, _, files) in walkdir(rootdir, follow_symlinks=false)
-		for file in files
+	for (root, _, files) ∈ walkdir(rootdir, follow_symlinks=false)
+		for file ∈ files
             path = abspath(joinpath(root, file))
             # Ignore symlinks
             if islink(path) continue end
@@ -136,7 +135,7 @@ function main()
 
     summary = show_dups(by_size)
     if args["verbose"]
-        for (k, v) in summary
+        for (k, v) ∈ summary
             println(stderr, "$(k) => $(repr(v))")
         end
    end
