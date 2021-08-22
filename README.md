@@ -57,7 +57,7 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit 4b71e19..1358c84, the performance of the various versions is
+As of commit 03eeed7..96f62bd, the performance of the various versions is
 approximately as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
@@ -66,7 +66,7 @@ Each language reports file count and time elapsed for CONDA_PREFIX
 |--------------------|-------------|----------------
 | Golang             | dups 407839 | 27 secs
 | Python             | dups 407839 | 28 secs
-| Julia              | dups 407839 | 44 secs
+| Julia              | dups 407839 | 42 secs
 | Haskell            | dups 407839 | 66 secs
 | Rust (rust-crypto) | dups 407839 | 169 secs
 | Rust (RustCrypto)  | dups 407839 | 196 secs
@@ -82,7 +82,7 @@ This fix makes the Python version about 20% faster.
 The Golang version that does not (yet) do this optimization is about tied for
 speed with Python currently.  I expect less speedup from doing this in Golang
 simply because the Goroutines already peg all my CPU cores.  Therefore, the
-needless work is also (probably) parallel work, and wallclock time will
+needless work is also (probably) parallel work, and wall clock time will
 (probably) be little affected.  Haskell can probably be improved since the
 `-threaded` option discovers only a little bit of parallelism.
 
