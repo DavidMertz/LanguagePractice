@@ -15,7 +15,7 @@ Checkmarks used to indicate at least a reasonable first version of specified too
 - [x] Go
 - [x] Julia
 - [x] TypeScript
-- [ ] Haskell
+- [x] Haskell
 - [ ] Ruby
 - [ ] Kotlin (JVM tooling is PITA; back-burner)
 - [ ] Dart (I realize I don't care about UI; back-burner)
@@ -55,51 +55,45 @@ Two or more following lines will be indented by two spaces and contain the
 full absolute path to the duplicate in question. Such duplicates appear in
 unspecified order within their section.
 
-### Notes on "duplicate"
+### Notes on performance
 
-There is a question here of what is a "file".  Specifically, there might be
-symbolic links or hard links in the root examined.  Should these be
-reported?
+As of commit a164820..75d91a0, the performance of the various versions is
+approximately as shown:
 
-The current tools all ignore symlinks (in Python, with the `-i` option).
-Taking a look at a snapshot of my $CONDA_PREFIX, currently, I see:
+Each language reports file count and time elapsed for CONDA_PREFIX
 
-```bash
-# All files
-% find -L $CONDA_PREFIX -type f | wc -l
-501153
-# Exclude symlinks
-% find $CONDA_PREFIX -type f | wc -l
-449667
-# Distinct inodes
-% find $CONDA_PREFIX -type f -print0 | 
-    xargs -0 ls -i | 
-    cut -c-8 | 
-    tr -d ' ' | 
-    sort -u | 
-    wc -l
-204763
-```
+| Language (options) | Sanity chk  | Wall clock time
+|--------------------|-------------|----------------
+| Golang             | dups 407839 | 28 secs
+| Python             | dups 407839 | 27 secs
+| Julia              | dups 407839 | 45 secs
+| Haskell            | dups 407839 | 66 secs
+| Rust (rust-crypto) | dups 407839 | 169 secs
+| Rust (RustCrypto)  | dups 407839 | 195 secs
+| TypeScript ->.js   | dups 407839 | 343 secs
 
-As of 2021-08-20 (rev 1da6f99..c002893), instrumenting the Haskell version
-produces slightly confusing results.
+To be fair, an optimization was noticed that has only been implemented in
+Python so far.  Specifically, for files of the same size that are actually hard
+links to the same inode, the file will be hashed multiple times.  Simply
+borrowing the hash of what is, after all, the identical on-disk location, is
+presumably cheaper.  This fix makes the Python version about 20% faster.
 
-* Haskell finds 204763 inodes (matching `find`)
-* Haskell finds 501153 total files (matching `find`)
-* Haskell finds 464553 "regular" files (excluding symlinks)
+The Golang version that does not (yet) do this optimization is about tied for
+speed with Python currently.  I expect less speedup from doing this in Golang
+(or Julia) simply because the Goroutines (or explicit `Threads.@threads` macro,
+in Julia) already peg all my CPU cores.  Therefore, the needless work is also
+(probably) parallel work, and wallclock time will (probably) be little
+affected.  Haskell can probably be improved since the `-threaded` option
+discovers only a little bit of parallelism.
 
-The last part is the confusion.  What are these 14,886 files that are not
-symlinks?!
+Rust is the troubling outlier here, having a reputation as a "fast" language.
+However, any parallelism that might be found has to be added explicitly, and a
+bit laboriously. The current versions are strictly single-core! 
 
-The number of duplicates Haskell identifies are greater by a similar number.
-This more-or-less makes sense given the extra files being examined, whatever
-they actually are.
-
-In terms of the actual `find-dups` tools, all except Haskell version,
-identify 407813 "duplicates."  Haskell finds 423918; this difference is
-about 16,105 which is to say slightly more than the number of extra
-non-symlinks.  It makes some sense that adding files makes new duplicates.
-In at least some examples, there seem to be file names sharing an inode that
-Haskell finds but other tools ignore for mysterious reasons.
+Even the Node.js JIT interpreter (TypeScript) manages to find a lot of
+parallism for asynchronous callbacks.  The problem there is that the underlying
+SHA1 implementation in JavaScript is about 11x slower than the best ones, even
+with the JIT making a noble attempt (see `benchmark-justsha` and the
+corresponding implementations of `sha1sum`).
 
 ## something-else ...

@@ -1,12 +1,14 @@
 #!/bin/bash
 echo "Each language reports file count and time elapsed for CONDA_PREFIX"
 echo
+echo "| Language (options) | Sanity chk  | Wall clock time"
+echo "|--------------------|-------------|----------------"
 
 JULIA_NUM_THREADS=$(nproc)
 NODE_OPTIONS="--max-old-space-size=8192"
 CP=$CONDA_PREFIX
 
-echo -n "Golang            "
+echo -n "| Golang            "
 start=$(date +%s)
 golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang 
 dups=$(grep '^  ' find-dups.golang | wc -l)
@@ -14,7 +16,7 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "Python            "
+echo -n "| Python            "
 start=$(date +%s)
 python/find-dups -m1 $CP >find-dups.python 2>/dev/null
 dups=$(grep '^  ' find-dups.python | wc -l)
@@ -22,7 +24,7 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "Julia             "
+echo -n "| Julia             "
 start=$(date +%s)
 julia/find-dups $CP 2>/dev/null >find-dups.julia 
 dups=$(grep '^  ' find-dups.golang | wc -l)
@@ -30,7 +32,7 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "Haskell           "
+echo -n "| Haskell           "
 start=$(date +%s)
 haskell/find-dups $CP 2>/dev/null >find-dups.haskell
 dups=$(grep '^  ' find-dups.haskell | wc -l)
@@ -38,7 +40,7 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "Rust (rust-crypto)"
+echo -n "| Rust (rust-crypto)"
 start=$(date +%s)
 rust/find-dups-rust-crypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
 dups=$(grep '^  ' find-dups.rust | wc -l)
@@ -46,7 +48,7 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "Rust (RustCrypto) "
+echo -n "| Rust (RustCrypto) "
 start=$(date +%s)
 rust/find-dups-RustCrypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust
 dups=$(grep '^  ' find-dups.rust | wc -l)
@@ -54,7 +56,7 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "TypeScript ->.js  "
+echo -n "| TypeScript ->.js  "
 cd typescript >/dev/null
 tsc find-dups.ts
 cd - >/dev/null
