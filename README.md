@@ -57,34 +57,34 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit a164820..75d91a0, the performance of the various versions is
+As of commit 4b71e19..1358c84, the performance of the various versions is
 approximately as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
 
 | Language (options) | Sanity chk  | Wall clock time
 |--------------------|-------------|----------------
-| Golang             | dups 407839 | 28 secs
-| Python             | dups 407839 | 27 secs
-| Julia              | dups 407839 | 45 secs
+| Golang             | dups 407839 | 27 secs
+| Python             | dups 407839 | 28 secs
+| Julia              | dups 407839 | 44 secs
 | Haskell            | dups 407839 | 66 secs
 | Rust (rust-crypto) | dups 407839 | 169 secs
-| Rust (RustCrypto)  | dups 407839 | 195 secs
+| Rust (RustCrypto)  | dups 407839 | 196 secs
 | TypeScript ->.js   | dups 407839 | 343 secs
 
 To be fair, an optimization was noticed that has only been implemented in
-Python so far.  Specifically, for files of the same size that are actually hard
-links to the same inode, the file will be hashed multiple times.  Simply
-borrowing the hash of what is, after all, the identical on-disk location, is
-presumably cheaper.  This fix makes the Python version about 20% faster.
+Python and Julia so far (possibly in a slightly better way in Julia).
+Specifically, for files of the same size that are actually hard links to the
+same inode, the file will be hashed multiple times.  Simply borrowing the hash
+of what is, after all, the identical on-disk location, is presumably cheaper.
+This fix makes the Python version about 20% faster.
 
 The Golang version that does not (yet) do this optimization is about tied for
 speed with Python currently.  I expect less speedup from doing this in Golang
-(or Julia) simply because the Goroutines (or explicit `Threads.@threads` macro,
-in Julia) already peg all my CPU cores.  Therefore, the needless work is also
-(probably) parallel work, and wallclock time will (probably) be little
-affected.  Haskell can probably be improved since the `-threaded` option
-discovers only a little bit of parallelism.
+simply because the Goroutines already peg all my CPU cores.  Therefore, the
+needless work is also (probably) parallel work, and wallclock time will
+(probably) be little affected.  Haskell can probably be improved since the
+`-threaded` option discovers only a little bit of parallelism.
 
 Rust is the troubling outlier here, having a reputation as a "fast" language.
 However, any parallelism that might be found has to be added explicitly, and a
