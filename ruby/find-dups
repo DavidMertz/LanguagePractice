@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+
+params = {}
+banner = "Usage: find-dups [options] <rootdir>"
+
+OptionParser.new do |opts|
+  opts.banner = banner
+  opts.on("-m", "--min-size MIN_SIZE", Integer, 
+          "Ignore files smaller than min-size") 
+  opts.on("-M", "--max-size MAX_SIZE", Integer, 
+          "Ignore files larger than max-size") 
+  opts.on("-v", "--[no-]verbose", 
+          "Display progress information on STDERR") 
+  opts.on("-h", "--help", "Prints this help") do
+    puts opts
+    exit
+  end
+end.parse!(into: params)
+
+rootdir = ARGV.pop
+if rootdir 
+  params[:ROOTDIR] = rootdir
+else 
+  p banner
+end
+
+p params
+
+puts "this".!

@@ -2,7 +2,9 @@
 
 -- Thanks to https://stackoverflow.com/users/7203016/k-a-buhr
 -- for providing guidance on a much better way to structure this tool
-import System.Directory (getFileSize, getHomeDirectory, pathIsSymbolicLink)
+import System.Directory (getFileSize, getHomeDirectory, 
+                         pathIsSymbolicLink, doesFileExist,
+                         listDirectory)
 import System.Directory.PathWalk (pathWalkLazy)
 import System.Environment (getArgs)
 import System.FilePath ((</>), addTrailingPathSeparator, normalise)
@@ -59,17 +61,6 @@ groupByHash finfos =
     in fromListWithDuplicates bySha1
 
 -- Lazily return (normal) files from rootdir
-getAllFilesNoSymDirs :: FilePath -> IO [FilePath]
-getAllFilesNoSymDirs root = pathWalkLazy root
-    -- remove dirs that are symlinks
-    >>= filterM (\(dir, _, _) -> fmap not $ pathIsSymbolicLink dir) 
-    -- flatten to list of files
-    >>= return . concat . map (
-        \(dir, _, files) -> map (\f -> dir </> f) files) 
-    -- remove files that are symlinks
-    >>= filterM (fmap not . pathIsSymbolicLink)
-
--- Lazily return (normal) files from rootdir
 getAllFilesNoSymFiles :: FilePath -> IO [FilePath]
 getAllFilesNoSymFiles root = do
     nodes <- pathWalkLazy root
@@ -87,6 +78,23 @@ getAllFilesRaw root = do
   let files = [dir </> file | (dir, _, files) <- nodes,
                               file <- files]
   return files
+
+-- Lazily return (normal) files from (normal) rootdir
+getAllFilesNoSymLinks :: FilePath -> IO [FilePath]
+getAllFilesNoSymLinks path = do
+    isSymlink <- pathIsSymbolicLink path
+    if isSymlink 
+        -- if this is a symlink, return the empty list. 
+        then return [] 
+        else do
+            isFile <- doesFileExist path
+            if isFile 
+                then return [path] 
+                else do
+                    -- if not a file, assume it to be a directory
+                    dirContents <- listDirectory path
+                    -- run recursively on children and accumulate results
+                    fmap concat $ mapM (getAllFiles . (path </>)) dirContents
 
 -- The logic of processing files    
 getFinfo :: FilePath -> IO Finfo
@@ -116,12 +124,10 @@ printSizeRecord (size, finfos)
       return ()
 
 -- Create the BySize map
-getAllFiles = getAllFilesNoSymDirs
-
 getBySize :: FilePath -> IO BySize
 getBySize root = do
     -- first, get all the files
-    files <- getAllFiles root
+    files <- getAllFilesNoSymLinks root
     -- convert them all to finfos
     finfos <- mapM getFinfo files
     -- get a list of size/finfo pairs

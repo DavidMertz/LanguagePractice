@@ -19,22 +19,28 @@ same filename.
 # commercial purposes, all without asking permission. See Other Information
 # below.
 
-from sys import maxsize, stderr, stdout, exit
+from sys import maxsize, stderr
 from os import remove, readlink, cpu_count, scandir
 from os.path import islink, abspath
 from fnmatch import fnmatch
-from os.path import isdir, exists, join, isfile, getsize
+from os.path import isdir, exists
 from hashlib import sha1
 from itertools import groupby
 from collections import namedtuple
 from operator import itemgetter
 from multiprocessing import Pool
-import concurrent.futures
 import sqlite3
-from pprint import pprint as XXX
+from pprint import pprint
+
+
+# I name my debug-print as XXX
+def XXX(*args, **kws):
+    pprint(*args, **kws, file=stderr)
+
 
 # Keep together associated file information
 Finfo = namedtuple("Finfo", ["size", "path", "inode"])
+
 
 def main():
     import optparse
@@ -137,9 +143,7 @@ def group_by_key(records, key=0, val_type=lambda *x: tuple(x)):
         yield (idx, [val_type(*v) for v in vals])
 
 
-def find_duplicates(dirs, opts):
-    "Find the duplicate files in the given root directory."
-
+def db_connection(dirs, opts):
     # Organize all filenames according to size.
     if opts.use_checkpoint and exists('sz.db'):
         conn = sqlite3.connect('sz.db')
@@ -169,6 +173,12 @@ def find_duplicates(dirs, opts):
     c.execute('''SELECT size, fname, inode FROM files_by_size
                  WHERE size<=? and size>=?
                  ORDER BY size desc''', (opts.max_size, opts.min_size))
+    return c
+
+
+def find_duplicates(dirs, opts):
+    "Find the duplicate files in the given root directory."
+    cursor = db_connection(dirs, opts)
 
     if opts.verbose:
         print("Grouping files by SHA1 (each '.' is 5k groups):", file=stderr)
@@ -178,13 +188,13 @@ def find_duplicates(dirs, opts):
     distincts = 0
     empties = 0
 
-    for sz, finfos in group_by_key(c, 0, Finfo):
+    for sz, finfos in group_by_key(cursor, 0, Finfo):
         # We have accumulated some dups that need to be printed
         if len(finfos) > 1:
             hashes = parallel_hash(finfos, pool=pool)
             for hash, vals in group_by_key(hashes):
                 if len(vals) > 1:
-                    distincts +=1
+                    distincts += 1
                     print('Size:', sz, '| SHA1:', hash)
                     for _, path in vals:
                         if islink(path):
@@ -196,10 +206,9 @@ def find_duplicates(dirs, opts):
                         stderr.write('.')
 
     if opts.verbose:
-        print("\nFound %d empty files"% empties, file=stderr)
+        print("\nFound %d empty files" % empties, file=stderr)
         print("Found %d non-empty duplicate sets" % distincts, file=stderr)
 
 
 if __name__ == '__main__':
     main()
-
