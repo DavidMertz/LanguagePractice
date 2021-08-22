@@ -30,7 +30,6 @@ A compliant implementation must do the following:
 * Have an executable named `find-dups`.
 * Take as a command-line argument the root path to examine for duplicate contents.
 * Accept flags for `min-size` and `max-size` files to consider (any files outside the size range are simply ignored by the tool's report).
-* Accept a flag `size-only` which indicates that above a certain size, hashing of a file can be omitted, and equality of size will simply be assumed to indicate equality of content.
 * A report should be produced on STDOUT. Optionally, informational messages may be written to STDERR.  The report should resemble:
 
 ```
