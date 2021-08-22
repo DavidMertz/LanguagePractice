@@ -65,18 +65,31 @@ function show_dups(by_size)
             push!(inodes[inode], path)
         end
 
-        for (inode, paths) ∈ inodes
+        # NOTE: Hacky attempt to work around Julia glitch
+        # Looping over the dictionary itself gets weird error of
+        # MethodError: no method matching firstindex(::Base.KeySet{...
+        # The macro seems to only handle looping over arrays.
+        # Non-threaded `for (inode, paths) ∈ inodes` works fine.
+        inodes_arr = [(k, v) for (k, v) = inodes]
+        hash_lock = Threads.SpinLock()
+
+        # NOTE: The lock REALLY matters! Dictionary insertion is not 
+        # thread-safe (not sure if dictionary access is in Julia), but
+        # the hack to use list of tuples avoids the question
+        Threads.@threads for (inode, paths) ∈ inodes_arr
             path = paths[1]
             content = UInt8[]
             open(path, "r") do fh
                 readbytes!(fh, content, Inf)
             end
             digest = bytes2hex(sha1(content))
-            digests[path] = digest
-            hashes_performed += 1
-            for other_path ∈ paths[2:end]
-                digests[other_path] = digest
-                lookups_by_inode += 1
+            lock(hash_lock) do
+                digests[path] = digest
+                hashes_performed += 1
+                for other_path ∈ paths[2:end]
+                    digests[other_path] = digest
+                    lookups_by_inode += 1
+                end
             end
         end
 
@@ -109,7 +122,7 @@ function main()
     minsize = args["min-size"]
 
 	if args["verbose"]
-        println(stderr, "Cores (not used) => $(Threads.nthreads())")
+        println(stderr, "Cores => $(Threads.nthreads())")
         for (k, v) ∈ args
             println(stderr, "$(k) => $(repr(v))")
         end
