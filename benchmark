@@ -16,18 +16,18 @@ CP=$CONDA_PREFIX
 #secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 #echo " | dups $dups | $secs"
 
-echo -n "| Golang            "
-start=$(date +%s)
-golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang
-dups=$(grep '^  ' find-dups.golang | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
 echo -n "| Python            "
 start=$(date +%s)
 python/find-dups $CP >find-dups.python 2>/dev/null
 dups=$(grep '^  ' find-dups.python | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "| Golang            "
+start=$(date +%s)
+golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang
+dups=$(grep '^  ' find-dups.golang | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
