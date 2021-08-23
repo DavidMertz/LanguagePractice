@@ -14340,6 +14340,171 @@ Size: 132 | SHA1: 0b2cfb06bbcc36dbcfb83eebdcf8d0f77d411871
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/CACHEDIR.TAG
   /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/CACHEDIR.TAG
   /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/CACHEDIR.TAG
+Size: 126 | SHA1: c354f11861f2c87ab60b26c6e53b15cfc8b6af5a
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build-script-main
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-e060494b59b3eb83/build-script-main
+Size: 126 | SHA1: 28f1f22f0ac02da4f27d439c54282e8a1d7e5b09
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/generic-array-afc93fa321d8be51/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/generic-array-afc93fa321d8be51/build_script_build-afc93fa321d8be51
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/generic-array-afc93fa321d8be51/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/generic-array-afc93fa321d8be51/build_script_build-afc93fa321d8be51
+Size: 126 | SHA1: eeedf798fc13b0d322bbbf22128e006aa30d8163
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-0193b9e32db8be7b/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-0193b9e32db8be7b/build_script_build-0193b9e32db8be7b
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-0193b9e32db8be7b/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-0193b9e32db8be7b/build_script_build-0193b9e32db8be7b
+Size: 126 | SHA1: 6983964d293d508772c9ecd26aa11f67943ea6b6
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/liblibc-cad279acca38b9c3.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/liblibc-cad279acca38b9c3.rlib
+Size: 126 | SHA1: 8983529d68d522ac309e2f25050aa6a1d77a10dd
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/liblibc-cad279acca38b9c3.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/liblibc-cad279acca38b9c3.rmeta
+Size: 126 | SHA1: f144ed5ee46b4d8b1ca5cc74a77267e7fa50c4ef
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rlib
+Size: 126 | SHA1: 0da61fbf8cfcce788acca37d512ffe48d2c13dfd
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/tests.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/tests.rs
+Size: 126 | SHA1: da350b50ce2708032abcf357696f8759f99c4641
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/deps/libversion_check-7c36d79de5ace750.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libversion_check-7c36d79de5ace750.rlib
+Size: 126 | SHA1: e5be58834a4c79f907dd9916f6b02af6448ea8da
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/consts.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/consts.rs
+Size: 126 | SHA1: 420394ae5a32f2cf261ae7be8486e1718b30c4c5
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rmeta
+Size: 126 | SHA1: bbe017bfa9df68663c0d4a31804a3ebb56529454
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libsame_file-808ffb06657e44ad.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libsame_file-808ffb06657e44ad.rlib
+Size: 126 | SHA1: 29a0a65a49ab17339d03b6acec4d836d41399823
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/deps/libversion_check-7c36d79de5ace750.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libversion_check-7c36d79de5ace750.rmeta
+Size: 126 | SHA1: 43f7df3e9ff30e23f13b45a7a3d6ce589f93fa87
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/op.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/op.rs
+Size: 126 | SHA1: 6cbd4c5b3675cca90266344a6593b5f3d9f2aa97
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libsame_file-808ffb06657e44ad.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libsame_file-808ffb06657e44ad.rmeta
+Size: 126 | SHA1: 5391040af3bf063b46eb2467c0255105e48dab56
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/README.md
+Size: 126 | SHA1: eaa4aa5561f18b233bae98c39082fc9f7d49cece
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/dist/index.js
+Size: 126 | SHA1: ba2c1e0754fb22c90213cdfd6865b826cfdcf749
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/index.mjs
+Size: 126 | SHA1: db20105dc898fa8aa6706492502431c680c0dc94
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/index.js
+Size: 126 | SHA1: 60d5a2a4f28b9ee6c04efb9f27c351496bccd58e
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/README.md
+Size: 126 | SHA1: 7b2092a8524831ffad07f45288531b117750b9eb
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/README.md
+Size: 126 | SHA1: 7526f38baad508889a2368cd10fd620e2fc11839
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/package.json
+Size: 126 | SHA1: 6bd567d0b2b38c3e32374d60b9f1e28692260d63
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/dist/index.js
+Size: 126 | SHA1: b9123f4a4c3e7d974f75d2b1c13b19fba7eb4ed7
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/README.hbs
+Size: 126 | SHA1: 888f63060f1f4e78696f49f97d2c7bbe59f6a1bd
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/CHANGELOG.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/CHANGELOG.md
+Size: 126 | SHA1: cbef2cb9d751b96af662030d18cffaf5bf72f122
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/README.hbs
+Size: 126 | SHA1: ec89037c74dc21a522af4d10332b180eb9b677f2
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/index.mjs
+Size: 126 | SHA1: 677f4627bdbce518fbbd347dc653e563ee97a89a
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/package.json
+Size: 126 | SHA1: 5aaf48196ddd4d007a3067aa7f30303ca8e4b29c
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/ansi-styles/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/supports-color/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/chalk/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/has-flag/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ansi-styles/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/supports-color/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/chalk/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/has-flag/license
+Size: 126 | SHA1: c4e913a1e0589bdde563b67918cc40878b473239
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/LICENSE
+Size: 126 | SHA1: 2b8069b831aaf2fb1239a6c7302d12b16a92869b
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/array-back/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/find-replace/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/LICENSE
+Size: 126 | SHA1: 3b8842e15e4c0c400a2caf33f2280c3c923027b9
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/LICENSE
+Size: 126 | SHA1: 2cb896d3773acc17b0f87dbb47759dfde011841b
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/LICENSE
+Size: 126 | SHA1: e8bc789b6dc24e4c3fc4d208364dd6b029a81eb1
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/LICENSE
+Size: 126 | SHA1: 700d7078cc14a77ed7e572688a16f95b7aeca258
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/generic-array-afc93fa321d8be51/build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/generic-array-afc93fa321d8be51/build-script-build-script-build.json
+Size: 126 | SHA1: f0e30a37734562cc40d5684e525a0acc9b7445ee
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-cad279acca38b9c3/lib-libc.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-cad279acca38b9c3/lib-libc.json
+Size: 126 | SHA1: 0d4f110fcb4efc18928065d9ffa878c851052d5c
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/README.md
+Size: 126 | SHA1: f0b5d70556531414a05dfec344b1cca82a511de5
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/walkdir-5cd5dfbcce707706/lib-walkdir.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/walkdir-5cd5dfbcce707706/lib-walkdir.json
+Size: 126 | SHA1: dbbea919d5ead02766c4180caa78b190ae9f1467
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-0193b9e32db8be7b/build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-0193b9e32db8be7b/build-script-build-script-build.json
+Size: 126 | SHA1: ba7466a49ee5cc367d97c88c17644fd65b49e0b9
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-e060494b59b3eb83/build-script-build-script-main.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-e060494b59b3eb83/build-script-build-script-main.json
+Size: 126 | SHA1: fec9ab41a74eb467b478a2dabbc837c247ef7aad
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/version_check-7c36d79de5ace750/lib-version_check.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/version_check-7c36d79de5ace750/lib-version_check.json
+Size: 126 | SHA1: 4ced69eb3da16e8bb1f6648b9768bfd2e1173287
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/same-file-808ffb06657e44ad/lib-same-file.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/same-file-808ffb06657e44ad/lib-same-file.json
+Size: 126 | SHA1: 34a2f70e8195bd81c5e5d7046bf14f68639a579c
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-5085d6f42e17ae30/run-build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-5085d6f42e17ae30/run-build-script-build-script-build.json
+Size: 126 | SHA1: 27e8273789bed4518cf5063df819c02047cb5136
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-5085d6f42e17ae30/output
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-5085d6f42e17ae30/output
+Size: 126 | SHA1: 28db2fa239e56d08ba37664b47e8e4e0933e1e17
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/generic-array-d9e26ab19b35a641/run-build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/generic-array-608802532a04877f/run-build-script-build-script-build.json
+Size: 126 | SHA1: ec1f9dc9397633add7773e45574334a0c49ff4d8
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-09cf677cfc756da6/run-build-script-build-script-main.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-cf8e254034b249f7/run-build-script-build-script-main.json
+Size: 126 | SHA1: a4fb3c2ec655e0a1b039630fed6d4e6418a37bc7
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/dist/helpers/index.d.ts
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/src/helpers/index.ts
+Size: 126 | SHA1: 0b2cfb06bbcc36dbcfb83eebdcf8d0f77d411871
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/CACHEDIR.TAG
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/CACHEDIR.TAG
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/CACHEDIR.TAG
 Size: 124 | SHA1: c354f11861f2c87ab60b26c6e53b15cfc8b6af5a
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build-script-main
@@ -16668,6 +16833,177 @@ Size: 58 | SHA1: 8844bdc8989251e61be0aed550ab5520d4188b64
 Size: 58 | SHA1: 9800d972941ea5bf3e0838f8686dbe9ff97ba98b
   /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/supports-color/browser.js
   /home/dmertz/git/LanguagePractice/typescript/node_modules/supports-color/browser.js
+Size: 53 | SHA1: c354f11861f2c87ab60b26c6e53b15cfc8b6af5a
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build-script-main
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-e060494b59b3eb83/build-script-main
+Size: 53 | SHA1: 28f1f22f0ac02da4f27d439c54282e8a1d7e5b09
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/generic-array-afc93fa321d8be51/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/generic-array-afc93fa321d8be51/build_script_build-afc93fa321d8be51
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/generic-array-afc93fa321d8be51/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/generic-array-afc93fa321d8be51/build_script_build-afc93fa321d8be51
+Size: 53 | SHA1: eeedf798fc13b0d322bbbf22128e006aa30d8163
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-0193b9e32db8be7b/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-0193b9e32db8be7b/build_script_build-0193b9e32db8be7b
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-0193b9e32db8be7b/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-0193b9e32db8be7b/build_script_build-0193b9e32db8be7b
+Size: 53 | SHA1: 6983964d293d508772c9ecd26aa11f67943ea6b6
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/liblibc-cad279acca38b9c3.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/liblibc-cad279acca38b9c3.rlib
+Size: 53 | SHA1: 8983529d68d522ac309e2f25050aa6a1d77a10dd
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/liblibc-cad279acca38b9c3.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/liblibc-cad279acca38b9c3.rmeta
+Size: 53 | SHA1: f144ed5ee46b4d8b1ca5cc74a77267e7fa50c4ef
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rlib
+Size: 53 | SHA1: 0da61fbf8cfcce788acca37d512ffe48d2c13dfd
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/tests.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/tests.rs
+Size: 53 | SHA1: da350b50ce2708032abcf357696f8759f99c4641
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/deps/libversion_check-7c36d79de5ace750.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libversion_check-7c36d79de5ace750.rlib
+Size: 53 | SHA1: e5be58834a4c79f907dd9916f6b02af6448ea8da
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/consts.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/consts.rs
+Size: 53 | SHA1: 420394ae5a32f2cf261ae7be8486e1718b30c4c5
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rmeta
+Size: 53 | SHA1: bbe017bfa9df68663c0d4a31804a3ebb56529454
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libsame_file-808ffb06657e44ad.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libsame_file-808ffb06657e44ad.rlib
+Size: 53 | SHA1: 29a0a65a49ab17339d03b6acec4d836d41399823
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/deps/libversion_check-7c36d79de5ace750.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libversion_check-7c36d79de5ace750.rmeta
+Size: 53 | SHA1: 43f7df3e9ff30e23f13b45a7a3d6ce589f93fa87
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/op.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/op.rs
+Size: 53 | SHA1: 6cbd4c5b3675cca90266344a6593b5f3d9f2aa97
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libsame_file-808ffb06657e44ad.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libsame_file-808ffb06657e44ad.rmeta
+Size: 53 | SHA1: 5391040af3bf063b46eb2467c0255105e48dab56
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/README.md
+Size: 53 | SHA1: eaa4aa5561f18b233bae98c39082fc9f7d49cece
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/dist/index.js
+Size: 53 | SHA1: ba2c1e0754fb22c90213cdfd6865b826cfdcf749
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/index.mjs
+Size: 53 | SHA1: db20105dc898fa8aa6706492502431c680c0dc94
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/index.js
+Size: 53 | SHA1: 60d5a2a4f28b9ee6c04efb9f27c351496bccd58e
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/README.md
+Size: 53 | SHA1: 7b2092a8524831ffad07f45288531b117750b9eb
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/README.md
+Size: 53 | SHA1: 7526f38baad508889a2368cd10fd620e2fc11839
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/package.json
+Size: 53 | SHA1: 6bd567d0b2b38c3e32374d60b9f1e28692260d63
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/dist/index.js
+Size: 53 | SHA1: b9123f4a4c3e7d974f75d2b1c13b19fba7eb4ed7
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/README.hbs
+Size: 53 | SHA1: 888f63060f1f4e78696f49f97d2c7bbe59f6a1bd
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/CHANGELOG.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/CHANGELOG.md
+Size: 53 | SHA1: cbef2cb9d751b96af662030d18cffaf5bf72f122
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/README.hbs
+Size: 53 | SHA1: ec89037c74dc21a522af4d10332b180eb9b677f2
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/index.mjs
+Size: 53 | SHA1: 677f4627bdbce518fbbd347dc653e563ee97a89a
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/package.json
+Size: 53 | SHA1: 5aaf48196ddd4d007a3067aa7f30303ca8e4b29c
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/ansi-styles/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/supports-color/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/chalk/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/has-flag/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ansi-styles/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/supports-color/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/chalk/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/has-flag/license
+Size: 53 | SHA1: c4e913a1e0589bdde563b67918cc40878b473239
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/LICENSE
+Size: 53 | SHA1: 2b8069b831aaf2fb1239a6c7302d12b16a92869b
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/array-back/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/find-replace/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/LICENSE
+Size: 53 | SHA1: 3b8842e15e4c0c400a2caf33f2280c3c923027b9
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/LICENSE
+Size: 53 | SHA1: 2cb896d3773acc17b0f87dbb47759dfde011841b
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/LICENSE
+Size: 53 | SHA1: e8bc789b6dc24e4c3fc4d208364dd6b029a81eb1
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/LICENSE
+Size: 53 | SHA1: 700d7078cc14a77ed7e572688a16f95b7aeca258
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/generic-array-afc93fa321d8be51/build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/generic-array-afc93fa321d8be51/build-script-build-script-build.json
+Size: 53 | SHA1: f0e30a37734562cc40d5684e525a0acc9b7445ee
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-cad279acca38b9c3/lib-libc.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-cad279acca38b9c3/lib-libc.json
+Size: 53 | SHA1: 0d4f110fcb4efc18928065d9ffa878c851052d5c
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/README.md
+Size: 53 | SHA1: f0b5d70556531414a05dfec344b1cca82a511de5
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/walkdir-5cd5dfbcce707706/lib-walkdir.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/walkdir-5cd5dfbcce707706/lib-walkdir.json
+Size: 53 | SHA1: dbbea919d5ead02766c4180caa78b190ae9f1467
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-0193b9e32db8be7b/build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-0193b9e32db8be7b/build-script-build-script-build.json
+Size: 53 | SHA1: ba7466a49ee5cc367d97c88c17644fd65b49e0b9
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-e060494b59b3eb83/build-script-build-script-main.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-e060494b59b3eb83/build-script-build-script-main.json
+Size: 53 | SHA1: fec9ab41a74eb467b478a2dabbc837c247ef7aad
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/version_check-7c36d79de5ace750/lib-version_check.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/version_check-7c36d79de5ace750/lib-version_check.json
+Size: 53 | SHA1: 4ced69eb3da16e8bb1f6648b9768bfd2e1173287
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/same-file-808ffb06657e44ad/lib-same-file.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/same-file-808ffb06657e44ad/lib-same-file.json
+Size: 53 | SHA1: 34a2f70e8195bd81c5e5d7046bf14f68639a579c
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-5085d6f42e17ae30/run-build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-5085d6f42e17ae30/run-build-script-build-script-build.json
+Size: 53 | SHA1: 27e8273789bed4518cf5063df819c02047cb5136
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-5085d6f42e17ae30/output
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-5085d6f42e17ae30/output
+Size: 53 | SHA1: 28db2fa239e56d08ba37664b47e8e4e0933e1e17
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/generic-array-d9e26ab19b35a641/run-build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/generic-array-608802532a04877f/run-build-script-build-script-build.json
+Size: 53 | SHA1: ec1f9dc9397633add7773e45574334a0c49ff4d8
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-09cf677cfc756da6/run-build-script-build-script-main.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-cf8e254034b249f7/run-build-script-build-script-main.json
+Size: 53 | SHA1: a4fb3c2ec655e0a1b039630fed6d4e6418a37bc7
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/dist/helpers/index.d.ts
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/src/helpers/index.ts
+Size: 53 | SHA1: 0b2cfb06bbcc36dbcfb83eebdcf8d0f77d411871
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/CACHEDIR.TAG
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/CACHEDIR.TAG
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/CACHEDIR.TAG
+Size: 53 | SHA1: 8844bdc8989251e61be0aed550ab5520d4188b64
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/dist/index.d.ts
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/src/index.ts
+Size: 53 | SHA1: 9800d972941ea5bf3e0838f8686dbe9ff97ba98b
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/supports-color/browser.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/supports-color/browser.js
 Size: 52 | SHA1: c354f11861f2c87ab60b26c6e53b15cfc8b6af5a
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build-script-main
@@ -17553,7 +17889,7 @@ Size: 41 | SHA1: b1713adaf16c3f6c66a004116b83cd15d88d2fd6
 Size: 41 | SHA1: e44059559274cd520a1107062986ad21a23678e3
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/no-wait-group
   /home/dmertz/git/LanguagePractice/.git/refs/heads/no-wait-group
-Size: 41 | SHA1: d1b747a07fd960ccdf0cfd057e8b379eb79b69e9
+Size: 41 | SHA1: 19c259500b8c5bc85e991c8125831231873edd00
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
   /home/dmertz/git/LanguagePractice/.git/refs/heads/main
 Size: 34 | SHA1: c354f11861f2c87ab60b26c6e53b15cfc8b6af5a
@@ -17797,7 +18133,7 @@ Size: 34 | SHA1: b1713adaf16c3f6c66a004116b83cd15d88d2fd6
 Size: 34 | SHA1: e44059559274cd520a1107062986ad21a23678e3
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/no-wait-group
   /home/dmertz/git/LanguagePractice/.git/refs/heads/no-wait-group
-Size: 34 | SHA1: d1b747a07fd960ccdf0cfd057e8b379eb79b69e9
+Size: 34 | SHA1: 19c259500b8c5bc85e991c8125831231873edd00
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
   /home/dmertz/git/LanguagePractice/.git/refs/heads/main
 Size: 34 | SHA1: 514695badb2a5d9489e0cf118ff1d1098883778d
@@ -18044,7 +18380,7 @@ Size: 24 | SHA1: b1713adaf16c3f6c66a004116b83cd15d88d2fd6
 Size: 24 | SHA1: e44059559274cd520a1107062986ad21a23678e3
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/no-wait-group
   /home/dmertz/git/LanguagePractice/.git/refs/heads/no-wait-group
-Size: 24 | SHA1: d1b747a07fd960ccdf0cfd057e8b379eb79b69e9
+Size: 24 | SHA1: 19c259500b8c5bc85e991c8125831231873edd00
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
   /home/dmertz/git/LanguagePractice/.git/refs/heads/main
 Size: 24 | SHA1: 514695badb2a5d9489e0cf118ff1d1098883778d
@@ -18295,7 +18631,7 @@ Size: 21 | SHA1: b1713adaf16c3f6c66a004116b83cd15d88d2fd6
 Size: 21 | SHA1: e44059559274cd520a1107062986ad21a23678e3
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/no-wait-group
   /home/dmertz/git/LanguagePractice/.git/refs/heads/no-wait-group
-Size: 21 | SHA1: d1b747a07fd960ccdf0cfd057e8b379eb79b69e9
+Size: 21 | SHA1: 19c259500b8c5bc85e991c8125831231873edd00
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
   /home/dmertz/git/LanguagePractice/.git/refs/heads/main
 Size: 21 | SHA1: 514695badb2a5d9489e0cf118ff1d1098883778d
@@ -18305,6 +18641,260 @@ Size: 21 | SHA1: 00763b34256d4a579de033d4c2abb7f21d71c1db
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/sha1sum-da218e340944a3fb/dep-bin-sha1sum
   /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/find-dups-c5d540aa2417e509/dep-bin-find-dups
   /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/find-dups-98f6e776d7db194e/dep-bin-find-dups
+Size: 18 | SHA1: c354f11861f2c87ab60b26c6e53b15cfc8b6af5a
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build-script-main
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-e060494b59b3eb83/build-script-main
+Size: 18 | SHA1: 28f1f22f0ac02da4f27d439c54282e8a1d7e5b09
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/generic-array-afc93fa321d8be51/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/generic-array-afc93fa321d8be51/build_script_build-afc93fa321d8be51
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/generic-array-afc93fa321d8be51/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/generic-array-afc93fa321d8be51/build_script_build-afc93fa321d8be51
+Size: 18 | SHA1: eeedf798fc13b0d322bbbf22128e006aa30d8163
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-0193b9e32db8be7b/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-0193b9e32db8be7b/build_script_build-0193b9e32db8be7b
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-0193b9e32db8be7b/build-script-build
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-0193b9e32db8be7b/build_script_build-0193b9e32db8be7b
+Size: 18 | SHA1: 6983964d293d508772c9ecd26aa11f67943ea6b6
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/liblibc-cad279acca38b9c3.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/liblibc-cad279acca38b9c3.rlib
+Size: 18 | SHA1: 8983529d68d522ac309e2f25050aa6a1d77a10dd
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/liblibc-cad279acca38b9c3.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/liblibc-cad279acca38b9c3.rmeta
+Size: 18 | SHA1: f144ed5ee46b4d8b1ca5cc74a77267e7fa50c4ef
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rlib
+Size: 18 | SHA1: 0da61fbf8cfcce788acca37d512ffe48d2c13dfd
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/tests.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/tests.rs
+Size: 18 | SHA1: da350b50ce2708032abcf357696f8759f99c4641
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/deps/libversion_check-7c36d79de5ace750.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libversion_check-7c36d79de5ace750.rlib
+Size: 18 | SHA1: e5be58834a4c79f907dd9916f6b02af6448ea8da
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/consts.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/consts.rs
+Size: 18 | SHA1: 420394ae5a32f2cf261ae7be8486e1718b30c4c5
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libwalkdir-5cd5dfbcce707706.rmeta
+Size: 18 | SHA1: bbe017bfa9df68663c0d4a31804a3ebb56529454
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libsame_file-808ffb06657e44ad.rlib
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libsame_file-808ffb06657e44ad.rlib
+Size: 18 | SHA1: 29a0a65a49ab17339d03b6acec4d836d41399823
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/deps/libversion_check-7c36d79de5ace750.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libversion_check-7c36d79de5ace750.rmeta
+Size: 18 | SHA1: 43f7df3e9ff30e23f13b45a7a3d6ce589f93fa87
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/out/op.rs
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/out/op.rs
+Size: 18 | SHA1: 6cbd4c5b3675cca90266344a6593b5f3d9f2aa97
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/deps/libsame_file-808ffb06657e44ad.rmeta
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/deps/libsame_file-808ffb06657e44ad.rmeta
+Size: 18 | SHA1: 5391040af3bf063b46eb2467c0255105e48dab56
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/README.md
+Size: 18 | SHA1: eaa4aa5561f18b233bae98c39082fc9f7d49cece
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/dist/index.js
+Size: 18 | SHA1: ba2c1e0754fb22c90213cdfd6865b826cfdcf749
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/index.mjs
+Size: 18 | SHA1: db20105dc898fa8aa6706492502431c680c0dc94
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/index.js
+Size: 18 | SHA1: 60d5a2a4f28b9ee6c04efb9f27c351496bccd58e
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/README.md
+Size: 18 | SHA1: 7b2092a8524831ffad07f45288531b117750b9eb
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/README.md
+Size: 18 | SHA1: 7526f38baad508889a2368cd10fd620e2fc11839
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/package.json
+Size: 18 | SHA1: 6bd567d0b2b38c3e32374d60b9f1e28692260d63
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/dist/index.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/dist/index.js
+Size: 18 | SHA1: b9123f4a4c3e7d974f75d2b1c13b19fba7eb4ed7
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/README.hbs
+Size: 18 | SHA1: 888f63060f1f4e78696f49f97d2c7bbe59f6a1bd
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/CHANGELOG.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/CHANGELOG.md
+Size: 18 | SHA1: cbef2cb9d751b96af662030d18cffaf5bf72f122
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/typical/README.hbs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/README.hbs
+Size: 18 | SHA1: ec89037c74dc21a522af4d10332b180eb9b677f2
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/index.mjs
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/index.mjs
+Size: 18 | SHA1: 677f4627bdbce518fbbd347dc653e563ee97a89a
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/package.json
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/package.json
+Size: 18 | SHA1: 5aaf48196ddd4d007a3067aa7f30303ca8e4b29c
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/ansi-styles/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/supports-color/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/chalk/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/has-flag/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ansi-styles/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/supports-color/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/chalk/license
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/has-flag/license
+Size: 18 | SHA1: c4e913a1e0589bdde563b67918cc40878b473239
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/typical/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/typical/LICENSE
+Size: 18 | SHA1: 2b8069b831aaf2fb1239a6c7302d12b16a92869b
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/array-back/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/array-back/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/find-replace/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/node_modules/array-back/LICENSE
+Size: 18 | SHA1: 3b8842e15e4c0c400a2caf33f2280c3c923027b9
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/wordwrapjs/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/table-layout/LICENSE
+Size: 18 | SHA1: 2cb896d3773acc17b0f87dbb47759dfde011841b
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-convert/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-convert/LICENSE
+Size: 18 | SHA1: e8bc789b6dc24e4c3fc4d208364dd6b029a81eb1
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/LICENSE
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/LICENSE
+Size: 18 | SHA1: 700d7078cc14a77ed7e572688a16f95b7aeca258
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/generic-array-afc93fa321d8be51/build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/generic-array-afc93fa321d8be51/build-script-build-script-build.json
+Size: 18 | SHA1: f0e30a37734562cc40d5684e525a0acc9b7445ee
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-cad279acca38b9c3/lib-libc.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-cad279acca38b9c3/lib-libc.json
+Size: 18 | SHA1: 0d4f110fcb4efc18928065d9ffa878c851052d5c
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/color-name/README.md
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/color-name/README.md
+Size: 18 | SHA1: f0b5d70556531414a05dfec344b1cca82a511de5
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/walkdir-5cd5dfbcce707706/lib-walkdir.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/walkdir-5cd5dfbcce707706/lib-walkdir.json
+Size: 18 | SHA1: dbbea919d5ead02766c4180caa78b190ae9f1467
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-0193b9e32db8be7b/build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-0193b9e32db8be7b/build-script-build-script-build.json
+Size: 18 | SHA1: ba7466a49ee5cc367d97c88c17644fd65b49e0b9
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-e060494b59b3eb83/build-script-build-script-main.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-e060494b59b3eb83/build-script-build-script-main.json
+Size: 18 | SHA1: fec9ab41a74eb467b478a2dabbc837c247ef7aad
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/version_check-7c36d79de5ace750/lib-version_check.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/version_check-7c36d79de5ace750/lib-version_check.json
+Size: 18 | SHA1: 4ced69eb3da16e8bb1f6648b9768bfd2e1173287
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/same-file-808ffb06657e44ad/lib-same-file.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/same-file-808ffb06657e44ad/lib-same-file.json
+Size: 18 | SHA1: 34a2f70e8195bd81c5e5d7046bf14f68639a579c
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-5085d6f42e17ae30/run-build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-5085d6f42e17ae30/run-build-script-build-script-build.json
+Size: 18 | SHA1: 27e8273789bed4518cf5063df819c02047cb5136
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-5085d6f42e17ae30/output
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-5085d6f42e17ae30/output
+Size: 18 | SHA1: 28db2fa239e56d08ba37664b47e8e4e0933e1e17
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/generic-array-d9e26ab19b35a641/run-build-script-build-script-build.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/generic-array-608802532a04877f/run-build-script-build-script-build.json
+Size: 18 | SHA1: ec1f9dc9397633add7773e45574334a0c49ff4d8
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-09cf677cfc756da6/run-build-script-build-script-main.json
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-cf8e254034b249f7/run-build-script-build-script-main.json
+Size: 18 | SHA1: a4fb3c2ec655e0a1b039630fed6d4e6418a37bc7
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/dist/helpers/index.d.ts
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/src/helpers/index.ts
+Size: 18 | SHA1: 0b2cfb06bbcc36dbcfb83eebdcf8d0f77d411871
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/CACHEDIR.TAG
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/CACHEDIR.TAG
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/CACHEDIR.TAG
+Size: 18 | SHA1: 8844bdc8989251e61be0aed550ab5520d4188b64
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/dist/index.d.ts
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/ts-command-line-args/src/index.ts
+Size: 18 | SHA1: 9800d972941ea5bf3e0838f8686dbe9ff97ba98b
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/command-line-usage/node_modules/supports-color/browser.js
+  /home/dmertz/git/LanguagePractice/typescript/node_modules/supports-color/browser.js
+Size: 18 | SHA1: 2609bf5809b2a3d6a76a9f7e2f28ab2149662bab
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/cfg-if-f2c228d918117a83/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/opaque-debug-c940903a68133c19/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/digest-0cd2864cac1c3bb5/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/cpufeatures-7e2cad17e42eea65/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/sha1sum-da218e340944a3fb/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-e060494b59b3eb83/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/sha-1-5012c3cc5491c63a/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/version_check-7c36d79de5ace750/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/generic-array-d98b2443b962d0e7/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-3518a23f6813e9c0/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/block-buffer-87c22d9d6b62182f/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/generic-array-afc93fa321d8be51/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-09cf677cfc756da6/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/generic-array-d9e26ab19b35a641/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/walkdir-5cd5dfbcce707706/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/rand-3621ed29afdf205d/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/same-file-808ffb06657e44ad/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/time-39c87fda755350f9/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-0193b9e32db8be7b/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/rust-crypto-7fe895bc90385a77/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/find-dups-c5d540aa2417e509/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/rustc-serialize-49bfc4481becb92e/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/libc-cad279acca38b9c3/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/gcc-1fca69dcb6ba85c6/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/rust-crypto-c3ebd6d85cddebee/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/rand-1af7c8ed3185900a/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/libc-5085d6f42e17ae30/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/build/rust-crypto-5efc4c16635fee94/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/walkdir-5cd5dfbcce707706/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/digest-715bab9821bb765b/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/bitflags-07a00fe4c80cb206/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/itoa-e713d6de2feb508d/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/num-format-dab3364d8b7c286a/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/cpufeatures-777daa1131a324de/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/same-file-808ffb06657e44ad/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/clap-901bb6fa02ab6985/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/block-buffer-16a5b206824d7bf9/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/arrayvec-a50a4aa24a319676/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/arrayvec-29dacd4d5979c777/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-0193b9e32db8be7b/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-e060494b59b3eb83/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/textwrap-068df653d119c9e3/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/bitflags-78c61ba464fb3094/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-fc81ff4948972a40/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/vec_map-1a6ee49aa228b691/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/opaque-debug-ec7eeb5b43741d46/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/ansi_term-2ee4a3fc009136e3/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/cfg-if-9f5fa0dbbc7264b7/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/version_check-7c36d79de5ace750/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/strsim-a7b848fb53a7f3ee/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/sha-1-90ae3fb5fc5677df/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/atty-5415be38ecabafae/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/libc-cad279acca38b9c3/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/find-dups-98f6e776d7db194e/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/unicode-width-47e5a57ab9eb81dc/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/generic-array-afc93fa321d8be51/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/generic-array-3775af8f8003e682/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/nodrop-fd33e7c08450a081/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/libc-5085d6f42e17ae30/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/bitflags-98170c90c05f59f6/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/arrayvec-dcbc597ea5c2cc4c/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/typenum-cf8e254034b249f7/invoked.timestamp
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/generic-array-608802532a04877f/invoked.timestamp
+Size: 18 | SHA1: b1713adaf16c3f6c66a004116b83cd15d88d2fd6
+  /home/dmertz/git/LanguagePractice/rust/hello/hello.rs
+  /home/dmertz/git/LanguagePractice/rust/hello2/src/main.rs
+Size: 18 | SHA1: e44059559274cd520a1107062986ad21a23678e3
+  /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/no-wait-group
+  /home/dmertz/git/LanguagePractice/.git/refs/heads/no-wait-group
+Size: 18 | SHA1: 19c259500b8c5bc85e991c8125831231873edd00
+  /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
+  /home/dmertz/git/LanguagePractice/.git/refs/heads/main
+Size: 18 | SHA1: 514695badb2a5d9489e0cf118ff1d1098883778d
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/generic-array-d9e26ab19b35a641/output
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/build/generic-array-608802532a04877f/output
+Size: 18 | SHA1: 00763b34256d4a579de033d4c2abb7f21d71c1db
+  /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/sha1sum-da218e340944a3fb/dep-bin-sha1sum
+  /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/find-dups-c5d540aa2417e509/dep-bin-find-dups
+  /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/find-dups-98f6e776d7db194e/dep-bin-find-dups
+Size: 18 | SHA1: e3791a624dd8cffd6493ed65dbbda4cfdb2bc73b
+  /home/dmertz/git/LanguagePractice/test-data/name1
+  /home/dmertz/git/LanguagePractice/test-data/name2
 Size: 16 | SHA1: c354f11861f2c87ab60b26c6e53b15cfc8b6af5a
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build_script_main-e060494b59b3eb83
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/build/typenum-e060494b59b3eb83/build-script-main
@@ -18546,7 +19136,7 @@ Size: 16 | SHA1: b1713adaf16c3f6c66a004116b83cd15d88d2fd6
 Size: 16 | SHA1: e44059559274cd520a1107062986ad21a23678e3
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/no-wait-group
   /home/dmertz/git/LanguagePractice/.git/refs/heads/no-wait-group
-Size: 16 | SHA1: d1b747a07fd960ccdf0cfd057e8b379eb79b69e9
+Size: 16 | SHA1: 19c259500b8c5bc85e991c8125831231873edd00
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
   /home/dmertz/git/LanguagePractice/.git/refs/heads/main
 Size: 16 | SHA1: 514695badb2a5d9489e0cf118ff1d1098883778d
@@ -18556,6 +19146,9 @@ Size: 16 | SHA1: 00763b34256d4a579de033d4c2abb7f21d71c1db
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/sha1sum-da218e340944a3fb/dep-bin-sha1sum
   /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/find-dups-c5d540aa2417e509/dep-bin-find-dups
   /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/find-dups-98f6e776d7db194e/dep-bin-find-dups
+Size: 16 | SHA1: e3791a624dd8cffd6493ed65dbbda4cfdb2bc73b
+  /home/dmertz/git/LanguagePractice/test-data/name1
+  /home/dmertz/git/LanguagePractice/test-data/name2
 Size: 16 | SHA1: a98aefec8c621112d6d787e57576b2d0fb2d4a6d
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-09cf677cfc756da6/run-build-script-build-script-main
   /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-cf8e254034b249f7/run-build-script-build-script-main
@@ -18827,7 +19420,7 @@ Size: 8 | SHA1: b1713adaf16c3f6c66a004116b83cd15d88d2fd6
 Size: 8 | SHA1: e44059559274cd520a1107062986ad21a23678e3
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/no-wait-group
   /home/dmertz/git/LanguagePractice/.git/refs/heads/no-wait-group
-Size: 8 | SHA1: d1b747a07fd960ccdf0cfd057e8b379eb79b69e9
+Size: 8 | SHA1: 19c259500b8c5bc85e991c8125831231873edd00
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
   /home/dmertz/git/LanguagePractice/.git/refs/heads/main
 Size: 8 | SHA1: 514695badb2a5d9489e0cf118ff1d1098883778d
@@ -18837,6 +19430,9 @@ Size: 8 | SHA1: 00763b34256d4a579de033d4c2abb7f21d71c1db
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/sha1sum-da218e340944a3fb/dep-bin-sha1sum
   /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/find-dups-c5d540aa2417e509/dep-bin-find-dups
   /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/find-dups-98f6e776d7db194e/dep-bin-find-dups
+Size: 8 | SHA1: e3791a624dd8cffd6493ed65dbbda4cfdb2bc73b
+  /home/dmertz/git/LanguagePractice/test-data/name1
+  /home/dmertz/git/LanguagePractice/test-data/name2
 Size: 8 | SHA1: a98aefec8c621112d6d787e57576b2d0fb2d4a6d
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-09cf677cfc756da6/run-build-script-build-script-main
   /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-cf8e254034b249f7/run-build-script-build-script-main
@@ -19158,7 +19754,7 @@ Size: 6 | SHA1: b1713adaf16c3f6c66a004116b83cd15d88d2fd6
 Size: 6 | SHA1: e44059559274cd520a1107062986ad21a23678e3
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/no-wait-group
   /home/dmertz/git/LanguagePractice/.git/refs/heads/no-wait-group
-Size: 6 | SHA1: d1b747a07fd960ccdf0cfd057e8b379eb79b69e9
+Size: 6 | SHA1: 19c259500b8c5bc85e991c8125831231873edd00
   /home/dmertz/git/LanguagePractice/.git/refs/remotes/origin/main
   /home/dmertz/git/LanguagePractice/.git/refs/heads/main
 Size: 6 | SHA1: 514695badb2a5d9489e0cf118ff1d1098883778d
@@ -19168,6 +19764,9 @@ Size: 6 | SHA1: 00763b34256d4a579de033d4c2abb7f21d71c1db
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/sha1sum-da218e340944a3fb/dep-bin-sha1sum
   /home/dmertz/git/LanguagePractice/rust/find-dups-rust-crypto/target/release/.fingerprint/find-dups-c5d540aa2417e509/dep-bin-find-dups
   /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/find-dups-98f6e776d7db194e/dep-bin-find-dups
+Size: 6 | SHA1: e3791a624dd8cffd6493ed65dbbda4cfdb2bc73b
+  /home/dmertz/git/LanguagePractice/test-data/name1
+  /home/dmertz/git/LanguagePractice/test-data/name2
 Size: 6 | SHA1: a98aefec8c621112d6d787e57576b2d0fb2d4a6d
   /home/dmertz/git/LanguagePractice/rust/sha1sum/target/release/.fingerprint/typenum-09cf677cfc756da6/run-build-script-build-script-main
   /home/dmertz/git/LanguagePractice/rust/find-dups-RustCrypto/target/release/.fingerprint/typenum-cf8e254034b249f7/run-build-script-build-script-main

@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require 'optparse'
 require 'digest'
+require 'set'
 
 # Process the command line, including default values
 def get_opts
@@ -109,6 +110,8 @@ def report_dups(opts)
     end
     # We have to perform some hashes here
     if npaths > 1
+      puts by_size.keys
+      exit # XXX
       by_size.each do |inode, paths|
         # Get the digest of just one with this same inode
         digest = Digest::SHA1.hexdigest IO.binread(paths[0])
