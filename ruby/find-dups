@@ -1,11 +1,10 @@
 #!/usr/bin/env ruby
 require 'optparse'
 require 'digest'
-require 'set'
 
 # Process the command line, including default values
 def get_opts
-  params = {:"min-size" => 1, :"max-size" => 1e11, 
+  params = {:"min-size" => 1, :"max-size" => (1e11).to_int, 
             :verbose => false, :glob => "*",
             :"enable-symlinks" => false}
   banner = "Usage: #{$0} [options] <rootdir>"
@@ -52,7 +51,7 @@ def walkdir(root, opts, finfos)
         inode = stat.ino
         if (size >= opts[:"min-size"] and 
             size <= opts[:"max-size"] and
-            File.fnmatch(opts[:glob], path))
+            File.fnmatch(opts[:glob], path, File::FNM_DOTMATCH))
           finfos.append([abspath, size, inode])
         end
       end
@@ -66,7 +65,9 @@ end
 #   size2 => ... }
 def make_size_and_inode(opts)
   by_size_and_inode = {}
+  total_files = 0
   walkdir(opts[:rootdir], opts, []).each do |path, size, inode|
+    total_files += 1
     if by_size_and_inode.key?(size)
       same_size = by_size_and_inode[size]
       if same_size.key?(inode)
@@ -79,64 +80,56 @@ def make_size_and_inode(opts)
       by_size_and_inode[size] = {inode => [path]}
     end
   end
-  return by_size_and_inode
+  return by_size_and_inode, total_files
 end
 
 def report_dups(opts)
-  tree_info = make_size_and_inode(opts)
+  tree_info, total_files = make_size_and_inode(opts)
   sizes = tree_info.keys.sort.reverse
   hashes_performed = 0
   hashes_skipped = 0
-  hash_groups = {}
+  ngroups = 0
   sizes.each do |size|
+    @hash_groups = {}
     by_size = tree_info[size]
     # If there are multiple paths, but all same inode...
     if by_size.length == 1 and by_size.values[0].length > 1
       inode = by_size.keys[0]
       digest = "<INODE #{inode}>"
-      if not hash_groups.key?(digest)
-        hash_groups[digest] = []
-      end
-      by_size.values.each do |path|
-        hash_groups[digest].append(path)
-        hashes_skipped += 1
-      end
-      next
-    end
-    # Check if there are multiple paths to worry about
-    npaths = 0
-    by_size.each do |inode, paths|
-      npaths += paths.length
-    end
-    # We have to perform some hashes here
-    if npaths > 1
-      puts by_size.keys
-      exit # XXX
+      paths = by_size.values[0]
+      @hash_groups[digest] = paths
+      hashes_skipped += paths.length
+    else # Check if there are multiple paths to worry about
+      npaths = 0
       by_size.each do |inode, paths|
-        # Get the digest of just one with this same inode
-        digest = Digest::SHA1.hexdigest IO.binread(paths[0])
-        # Then add an array of paths matching that digest
-        if not hash_groups.key?(digest)
-          hash_groups[digest] = []
-        end
-        paths.each do |path|
-          hash_groups[digest].append(path)
-        end
-        hashes_performed += 1
-        hashes_skipped += (paths.length-1)
+        npaths += paths.length
       end
-      # Now we can print out the matches (if any)
-      hash_groups.each do |digest, paths|
-        if paths.length > 1
-          puts "Size: #{size} | SHA1: #{digest}"
-          paths.each do |path|
-            puts "  #{path}"
-          end
+      # We have to perform some hashes here
+      if npaths > 1
+        by_size.each do |inode, paths|
+          # Get the digest of just one with this same inode
+          digest = Digest::SHA1.hexdigest IO.binread(paths[0])
+          # Then add an array of paths matching that digest
+          @hash_groups[digest] ||= []
+          @hash_groups[digest].push(*paths)
+          hashes_performed += 1
+          hashes_skipped += (paths.length-1)
+        end
+      end
+    end
+
+    # Now we can print out the matches (if any)
+    @hash_groups.each do |digest, paths|
+      ngroups += 1
+      if paths.length > 1
+        puts "Size: #{size} | SHA1: #{digest}"
+        paths.each do |path|
+          puts "  #{path}"
         end
       end
     end
   end
-  return hashes_performed, hashes_skipped, hash_groups.length
+  return hashes_performed, hashes_skipped, ngroups, total_files
 end
 
 # Parse the command line
@@ -150,11 +143,12 @@ if opts[:verbose]
 end
 
 # Run the whole report
-performed, skipped, ngroups = report_dups(opts)
+performed, skipped, ngroups, npaths = report_dups(opts)
 
 # If verbose, print summary stats
 if opts[:verbose]
-  STDERR.puts "Found     #{ngroups} duplicate sets"
-  STDERR.puts "Performed #{performed} SHA1 hashes"
-  STDERR.puts "Skipped   #{skipped} hardlink hashes"
+  STDERR.puts "Looked up  #{npaths} file sizes"
+  STDERR.puts "Found      #{ngroups} duplication sets"
+  STDERR.puts "Calculated #{performed} SHA1 hashes"
+  STDERR.puts "Short-cut  #{skipped} hard links"
 end

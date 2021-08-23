@@ -8,13 +8,13 @@ JULIA_NUM_THREADS=$(nproc)
 NODE_OPTIONS="--max-old-space-size=8192"
 CP=$CONDA_PREFIX
 
-#echo -n "| Ruby              "
-#start=$(date +%s)
-#ruby/find-dups $CP 2>/dev/null >find-dups.ruby
-#dups=$(grep '^  ' find-dups.ruby | wc -l)
-#end=$(date +%s)
-#secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-#echo " | dups $dups | $secs"
+echo -n "| Ruby              "
+start=$(date +%s)
+ruby/find-dups $CP 2>/dev/null >find-dups.ruby
+dups=$(grep '^  ' find-dups.ruby | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
 
 echo -n "| Python            "
 start=$(date +%s)
