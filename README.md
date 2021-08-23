@@ -56,20 +56,21 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit 03eeed7..96f62bd, the performance of the various versions is
+As of commit 5427c33, the performance of the various versions is
 approximately as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
 
 | Language (options) | Sanity chk  | Wall clock time
 |--------------------|-------------|----------------
-| Golang             | dups 407839 | 27 secs
-| Python             | dups 407839 | 28 secs
-| Julia              | dups 407839 | 42 secs
+| Ruby               | dups 407839 | 17 secs
+| Python             | dups 407839 | 26 secs
+| Golang             | dups 407839 | 28 secs
+| Julia              | dups 407839 | 41 secs
 | Haskell            | dups 407839 | 66 secs
-| Rust (rust-crypto) | dups 407839 | 169 secs
-| Rust (RustCrypto)  | dups 407839 | 196 secs
-| TypeScript ->.js   | dups 407839 | 332 secs
+| Rust (rust-crypto) | dups 407839 | 175 secs
+| Rust (RustCrypto)  | dups 407839 | 197 secs
+| TypeScript ->.js   | dups 407839 | 349 secs
 
 To be fair, an optimization was noticed that has only been implemented in
 Python and Julia so far (possibly in a slightly better way in Julia).
@@ -77,6 +78,14 @@ Specifically, for files of the same size that are actually hard links to the
 same inode, the file will be hashed multiple times.  Simply borrowing the hash
 of what is, after all, the identical on-disk location, is presumably cheaper.
 This fix makes the Python version about 20% faster.
+
+To be even more fair, the latest version written is the Ruby one.  For that, I
+took advantage of what I learned in iterating the implementations.
+Specifically, as well as taking advantage of the Python/Julia optimization of
+"don't hash hard links *multiple times*", I extended this to "don't hash
+size-duplication sets **at all** if they are all the same inode."  Given that
+I've made no attempt (so far) at parallelism in Ruby, its success really
+surprises me, even given the mentioned optimization.
 
 The Golang version that does not (yet) do this optimization is about tied for
 speed with Python currently.  I expect less speedup from doing this in Golang
