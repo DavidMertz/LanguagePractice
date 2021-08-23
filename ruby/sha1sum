@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+require 'digest'
+fname = ARGV.pop
+puts "#{Digest::SHA1.hexdigest IO.binread(fname)}  #{fname}"
+

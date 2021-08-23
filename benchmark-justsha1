@@ -4,28 +4,32 @@ echo "Create file 'data' as one billion bytes..."
 head -c1000000000 /dev/urandom > data
 
 echo
-echo "/usr/bin/sha1sum"
-/usr/bin/time -f "%e seconds" sha1sum data
+echo "$PWD/golang/sha1sum/sha1sum"
+/usr/bin/time -f "%e seconds" golang/sha1sum/sha1sum data
 
 echo
 echo "$PWD/python/sha1sum"
 /usr/bin/time -f "%e seconds" python/sha1sum data
 
 echo
-echo "$PWD/julia/sha1sum"
-/usr/bin/time -f "%e seconds" julia/sha1sum data
+echo "/usr/bin/sha1sum"
+/usr/bin/time -f "%e seconds" sha1sum data
 
 echo
-echo "$PWD/golang/sha1sum/sha1sum"
-/usr/bin/time -f "%e seconds" golang/sha1sum/sha1sum data
+echo "$PWD/haskell/sha1sum"
+/usr/bin/time -f "%e seconds" haskell/sha1sum data
+
+echo
+echo "$PWD/ruby/sha1sum"
+/usr/bin/time -f "%e seconds" ruby/sha1sum data
 
 echo
 echo "$PWD/rust/sha1sum/target/release/sha1sum"
 /usr/bin/time -f "%e seconds" rust/sha1sum/target/release/sha1sum data
 
 echo
-echo "$PWD/haskell/sha1sum"
-/usr/bin/time -f "%e seconds" haskell/sha1sum data
+echo "$PWD/julia/sha1sum"
+/usr/bin/time -f "%e seconds" julia/sha1sum data
 
 echo
 cd typescript >/dev/null
