@@ -32,14 +32,17 @@ from multiprocessing import Pool
 import sqlite3
 from pprint import pprint
 
-
-# I name my debug-print as XXX
-def XXX(*args, **kws):
-    pprint(*args, **kws, file=stderr)
-
+# Counts of actions for debug/verbose mode (i.e. calculating hashes)
+performed, copied = 0, 0
 
 # Keep together associated file information
 Finfo = namedtuple("Finfo", ["size", "path", "inode"])
+Status = namedtuple("Status", ["hashes_performed", "hashes_copied"])
+
+
+# I name my debug-print as XXX
+def XXX(arg):
+    pprint(arg, stream=stderr)
 
 
 def main():
@@ -51,7 +54,7 @@ def main():
                            "(perhaps out of date)")
     parser.add_option('-M', '--max-size', type="int", default=maxsize,
                       help="Ignore files larger than MAX_SIZE")
-    parser.add_option('-m', '--min-size', type="int", default=0,
+    parser.add_option('-m', '--min-size', type="int", default=1,
                       help="Ignore files smaller than MIN_SIZE")
     parser.add_option('-l', '--enable-symlinks', action="store_true",
                        default=False,
@@ -97,13 +100,15 @@ def hash_content(finfo):
 
 
 def parallel_hash(finfos, pool=None):
-    unique_inodes = [f[0] for _, f in group_by_key(finfos, 2, Finfo)
-                      if len(f) == 1]
+    global performed, copied
+    uniq_inodes = [f[0] for _, f in group_by_key(finfos, 2, Finfo)
+                        if len(f) == 1]
     dup_inodes = [f for _, f in group_by_key(finfos, key=2)
-                   if len(f) > 1]
+                    if len(f) > 1]
 
     # Use the pool to parallelize distinct inodes
-    hashes = pool.map(hash_content, unique_inodes)
+    hashes = pool.map(hash_content, uniq_inodes)
+    performed += len(hashes)
 
     # Might add to hashes if we have hardlink sets
     # Note: there COULD be many such inode sets, which are calculated
@@ -113,12 +118,15 @@ def parallel_hash(finfos, pool=None):
         finfo = Finfo(*dup_inode[0])  # Use the first one
         digest, _ = hash_content(finfo)
         more_hashes = [(digest, dup[1]) for dup in dup_inode]
+        performed += 1
+        copied += len(dup_inode[1:])
         hashes.extend(more_hashes)
 
-    return hashes
+    return hashes, Status(performed, copied)
 
 
-def group_by_key(records, key=0, val_type=lambda *x: tuple(x)):
+def group_by_key(records,
+                 key=0, val_type=lambda *x: tuple(x), sort=False):
     """Combine adjacent second items in pairs
 
     This function is passed an interable each of whose values is a pair;
@@ -138,7 +146,11 @@ def group_by_key(records, key=0, val_type=lambda *x: tuple(x)):
             Finfo(size=1, path='bar', inode=119)]),
        (2, [Finfo(size=2, path='baz', inode=43)])]
     """
-    records = sorted(records, key=itemgetter(key))
+    if sort < 0:
+        records = sorted(records, key=itemgetter(key), reversed=True)
+    elif sort > 0:
+        records = sorted(records, key=itemgetter(key))
+
     for idx, vals in groupby(records, itemgetter(key)):
         yield (idx, [val_type(*v) for v in vals])
 
@@ -147,7 +159,7 @@ def db_connection(dirs, opts):
     # Organize all filenames according to size.
     if opts.use_checkpoint and exists('sz.db'):
         conn = sqlite3.connect('sz.db')
-        c = conn.cursor()
+        cursor = conn.cursor()
         if opts.verbose:
             print("Read cached file sizes from 'sz.db'...", file=stderr)
     else:
@@ -155,25 +167,26 @@ def db_connection(dirs, opts):
         if exists('sz.db'):
             remove('sz.db')
         conn = sqlite3.connect('sz.db')
-        c = conn.cursor()
+        cursor = conn.cursor()
         sql = 'CREATE TABLE files_by_size (size INT, fname TEXT, inode INT)'
-        c.execute(sql)
+        cursor.execute(sql)
         if opts.verbose:
             print("Checking sizes (each '.' is 100k files):", file=stderr)
         sql_insert = 'INSERT INTO files_by_size values (?, ?, ?)'
         for fn, sz, inode in scan_files(dirs, opts):
             count += 1
-            c.execute(sql_insert, (sz, fn, inode))
+            cursor.execute(sql_insert, (sz, fn, inode))
             if opts.verbose and count % 100000 == 0:
                 stderr.write('.')
         conn.commit()
         if opts.verbose:
             print("\nFound sizes on %d files..." % count, file=stderr)
 
-    c.execute('''SELECT size, fname, inode FROM files_by_size
-                 WHERE size<=? and size>=?
-                 ORDER BY size desc''', (opts.max_size, opts.min_size))
-    return c
+    cursor.execute('''SELECT size, fname, inode FROM files_by_size
+                      WHERE size<=? AND size>=?
+                      ORDER BY size DESC''',
+                   (opts.max_size, opts.min_size))
+    return cursor
 
 
 def find_duplicates(dirs, opts):
@@ -186,13 +199,12 @@ def find_duplicates(dirs, opts):
     # Need process pool
     pool = Pool(processes=int(cpu_count()*0.75))
     distincts = 0
-    empties = 0
 
     for sz, finfos in group_by_key(cursor, 0, Finfo):
         # We have accumulated some dups that need to be printed
         if len(finfos) > 1:
-            hashes = parallel_hash(finfos, pool=pool)
-            for hash, vals in group_by_key(hashes):
+            hashes, st = parallel_hash(finfos, pool=pool)
+            for hash, vals in group_by_key(hashes, sort=True):
                 if len(vals) > 1:
                     distincts += 1
                     print('Size:', sz, '| SHA1:', hash)
@@ -206,8 +218,10 @@ def find_duplicates(dirs, opts):
                         stderr.write('.')
 
     if opts.verbose:
-        print("\nFound %d empty files" % empties, file=stderr)
-        print("Found %d non-empty duplicate sets" % distincts, file=stderr)
+        print(file=stderr)
+        print(f"Found     {distincts:,} duplicate sets", file=stderr)
+        print(f"Performed {st.hashes_performed:,} SHA1 hashes", file=stderr)
+        print(f"Copied    {st.hashes_copied:,} hardlink hashes", file=stderr)
 
 
 if __name__ == '__main__':
