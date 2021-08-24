@@ -8,6 +8,14 @@ JULIA_NUM_THREADS=$(nproc)
 NODE_OPTIONS="--max-old-space-size=8192"
 CP=$CONDA_PREFIX
 
+echo -n "| Golang            "
+start=$(date +%s)
+golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang
+dups=$(grep '^  ' find-dups.golang | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
 echo -n "| Ruby              "
 start=$(date +%s)
 ruby/find-dups $CP 2>/dev/null >find-dups.ruby
@@ -20,14 +28,6 @@ echo -n "| Python            "
 start=$(date +%s)
 python/find-dups $CP >find-dups.python 2>/dev/null
 dups=$(grep '^  ' find-dups.python | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
-echo -n "| Golang            "
-start=$(date +%s)
-golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang
-dups=$(grep '^  ' find-dups.golang | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"

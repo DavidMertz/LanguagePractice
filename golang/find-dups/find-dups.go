@@ -64,17 +64,23 @@ func WalkDir(dir string, c chan Finfo) error {
     })
 }
 
-func FillHash(finfo Finfo) Finfo {
+func FillHash(finfo Finfo, hashCache map[uint64][20]byte) Finfo {
     content, err := os.ReadFile(finfo.abspath)
     if err != nil {
         fmt.Fprintf(os.Stderr,
                     "UNAVAILABLE %s\n", finfo.abspath)
     } else {
-        // If over size-only, retain nulls as hash value
-        // i.e. perhaps skip work of large SHA calculation
-        if (finfo.hash == [20]byte{}) {
+        // Maybe we've already hashed and cached this inode
+        hash, found := hashCache[finfo.inode]
+        if found { 
+            finfo.hash = hash
+            hashes_skipped += 1
+        // Hash might be uncalculated, and we need to perform it
+        } else if (finfo.hash == [20]byte{}) {
             finfo.hash = sha1.Sum(content)
             hashes_performed += 1
+            hashCache[finfo.inode] = finfo.hash
+        // Might have been filled in with an inode "pseudo-hash"
         } else {
             hashes_skipped += 1
         }
@@ -111,9 +117,10 @@ func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
         }
         // Multiple inodes, possibly with multiple fnames in each
         sameHash := make(map[[20]byte][]string)
+        hashCache := make(map[uint64][20]byte)
 
         for _, finfo := range sizes[size] {
-            finfo = FillHash(finfo)
+            finfo = FillHash(finfo, hashCache)
             thisHash := sameHash[finfo.hash]
             sameHash[finfo.hash] = append(thisHash, finfo.abspath) 
         }
