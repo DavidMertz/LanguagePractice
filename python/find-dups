@@ -33,6 +33,7 @@ from pprint import pprint
 
 # Keep together associated file information
 Finfo = namedtuple("Finfo", ["size", "path", "inode"])
+SIZE, PATH, INODE = range(3)
 
 # Keep stats on hashes performed and avoided
 hashes_calculated, hashes_skipped = 0, 0
@@ -93,9 +94,17 @@ def hash_content(finfo):
 
 def parallel_hash(finfos, pool=None):
     global hashes_calculated, hashes_skipped
-    unique_inodes = [f[0] for _, f in group_by_key(finfos, 2, Finfo)
+    # Might have exclusively paths of this size with same inode
+    if len({finfo.inode for finfo in finfos}) == 1:
+        inode = finfos[0].inode  # Any finfo will do
+        hashes = [(f"<INODE {inode}>", finfo.path) for finfo in finfos]
+        hashes_skipped += len(finfos)
+        return hashes
+
+    # Otherwise, split up the inodes with one versus several paths
+    unique_inodes = [f[0] for _, f in group_by_key(finfos, INODE, Finfo)
                           if len(f) == 1]
-    dup_inodes = [f for _, f in group_by_key(finfos, key=2)
+    dup_inodes = [f for _, f in group_by_key(finfos, key=INODE)
                     if len(f) > 1]
 
     # Use the pool to parallelize distinct inodes
