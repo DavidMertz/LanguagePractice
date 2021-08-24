@@ -1,6 +1,23 @@
 #!/usr/bin/env ruby
+# Given a root directory, recurse in it and find all the duplicate
+# files, files that have the same contents, but not necessarily the
+# same filename.
+#
+# Created by David Mertz
+# This code is released as CC-0
+# http://creativecommons.org/publicdomain/zero/1.0/
+#
+# The person who associated a work with this deed has dedicated the work to
+# the public domain by waiving all of his or her rights to the work
+# worldwide under copyright law, including all related and neighboring
+# rights, to the extent allowed by law.
+#
+# You can copy, modify, distribute and perform the work, even for
+# commercial purposes, all without asking permission. See Other Information
+# below.
 require 'optparse'
 require 'digest'
+require "active_support"
 
 # Process the command line, including default values
 def get_opts
@@ -132,6 +149,10 @@ def report_dups(opts)
   return hashes_performed, hashes_skipped, ngroups, total_files
 end
 
+def commas(num)
+  ActiveSupport::NumberHelper.number_to_delimited(num)
+end
+
 # Parse the command line
 opts = get_opts()
 
@@ -147,8 +168,8 @@ performed, skipped, ngroups, npaths = report_dups(opts)
 
 # If verbose, print summary stats
 if opts[:verbose]
-  STDERR.puts "Looked up  #{npaths} file sizes"
-  STDERR.puts "Found      #{ngroups} duplication sets"
-  STDERR.puts "Calculated #{performed} SHA1 hashes"
-  STDERR.puts "Short-cut  #{skipped} hard links"
+  STDERR.puts "Looked up  #{commas npaths} file sizes"
+  STDERR.puts "Found      #{commas ngroups} duplication sets"
+  STDERR.puts "Calculated #{commas performed} SHA1 hashes"
+  STDERR.puts "Short-cut  #{commas skipped} hard links"
 end

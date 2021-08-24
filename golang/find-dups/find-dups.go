@@ -22,6 +22,7 @@ package main
 import (
     "fmt"
     "os"
+    "syscall"
     "flag"
     "time"
     "sort"
@@ -36,6 +37,7 @@ type Finfo struct {
     fsize int64
     abspath string
     hash [20]byte
+    inode uint64
 }
 
 // Let's count the total hashes done
@@ -49,17 +51,21 @@ func WalkDir(dir string, c chan Finfo) error {
         }
         if info.Mode().IsRegular() {
             abspath, err := filepath.Abs(path)
+            var stat syscall.Stat_t
+            if err := syscall.Stat(abspath, &stat); err != nil {
+                panic(err)
+            }
             if err != nil {
                 fmt.Fprintf(os.Stderr, "SKIPPING %s\n", path)
             } else {
-                c <- Finfo{info.Size(), abspath, [20]byte{}}
+                c <- Finfo{info.Size(), abspath, [20]byte{}, stat.Ino}
             }
         }
     return nil
     })
 }
 
-func FillHash(info Finfo, sizeOnly int, hashGroup *sync.WaitGroup) Finfo {
+func FillHash(info Finfo, hashGroup *sync.WaitGroup) Finfo {
     content, err := os.ReadFile(info.abspath)
     if err != nil {
         fmt.Fprintf(os.Stderr,
@@ -67,15 +73,15 @@ func FillHash(info Finfo, sizeOnly int, hashGroup *sync.WaitGroup) Finfo {
     } else {
         // If over size-only, retain nulls as hash value
         // i.e. perhaps skip work of large SHA calculation
-        if (info.fsize <= int64(sizeOnly)) {
-            info.hash = sha1.Sum(content)
-            hashes_performed += 1
-        }
+        info.hash = sha1.Sum(content)
+        hashes_performed += 1
     }
     hashGroup.Done()
     return info
 }
 
+// The sync.WaitGroup actually seems to slow it down slightly
+// Go does a great job of discovering inherent parallelizability
 func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
               minSize int, maxSize int, sizeOnly int) {
     // Sort from large to small filesize
@@ -112,8 +118,6 @@ func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
 }
 
 func main() {
-    sizeOnly := *flag.Int("size-only", 1e9,
-        "Files match if same-size larger than size-only")
     var maxSize int
     flag.IntVar(&maxSize, "max-size", 1e10,
                 "Ignore files larger than max-size")
@@ -132,7 +136,6 @@ func main() {
     p := message.NewPrinter(language.English)
 
     if (verbose) {
-        p.Fprintf(os.Stderr, "size-only %d\n", sizeOnly)
         p.Fprintf(os.Stderr, "max-size %d\n", maxSize)
         p.Fprintf(os.Stderr, "min-size %d\n", minSize)
         p.Fprintf(os.Stderr, "verbose %t\n", verbose)
@@ -155,10 +158,10 @@ func main() {
                         dupsizes = append(dupsizes, size)
                     }
                 }
-                ShowDups(sizes, dupsizes, minSize, maxSize, sizeOnly)
+                ShowDups(sizes, dupsizes, minSize, maxSize)
                 if (verbose) {
                     p.Fprintf(os.Stderr, 
-                            "Hashes performed %d\n", hashes_performed)
+                              "Hashes performed %d\n", hashes_performed)
                 }
                 return
         }
