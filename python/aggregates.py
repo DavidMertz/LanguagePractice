@@ -7,13 +7,15 @@ import warnings
 import numpy as np
 import pandas as pd
 import xarray as xr
+# https://pypi.org/project/python-linkedlist/#description
+import linkedadt
 
 warnings.filterwarnings('ignore')
-
 aggregates = """
-[]
-()
-{}
+''
+list()
+tuple()
+dict()
 set()
 bytearray()
 bytearray(1)
@@ -37,6 +39,7 @@ np.ones((2,))
 pd.Series()
 pd.DataFrame()
 xr.DataArray()
+linkedadt.LinkedList()
 """.strip().split('\n')
 
 for aggregate in aggregates:
