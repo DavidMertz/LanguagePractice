@@ -44,17 +44,50 @@ var by_size = {};
 /* Callbacks and completion of each for a spin-wait */
 var todo = 0;
 var done = 0;
+var hashes_performed = 0;
+var problem = console.error;
+/* Put hashing in a function to cache and choose library */
+var getDigest = function (finfo) {
+    var data = fs.readFileSync(finfo.fname);
+    // js-sha1
+    var hash = sha1.create();
+    hash.update(data);
+    var digest = hash.hex();
+    finfo.hash = digest;
+    return digest;
+    // rusha
+    // const hash = Rusha.createHash().update(data);
+    // return hash.digest('hex')
+};
+/* Function to hash an array of Finfo objects */
+var hashAll = function (finfos) {
+    var hashCache = {};
+    for (var _i = 0, finfos_1 = finfos; _i < finfos_1.length; _i++) {
+        var finfo = finfos_1[_i];
+        if (finfo.inode in hashCache) {
+            finfo.hash = hashCache[finfo.inode];
+        }
+        else {
+            getDigest(finfo);
+            by_size[finfo.size].push(finfo);
+            hashCache[finfo.inode] = finfo.hash;
+            done += 1;
+            hashes_performed += 1;
+        }
+        ;
+    }
+    ;
+};
 /*---------------------------------------------------------------------
  * Recursively and asynchronously walk directory
  *
- * Callbacks for found `file` and `problem` encountered will be
- * provided with full paths to the relevant file/directory
+ * Callbacks for found `file` encountered will be provided with full
+ * paths to the relevant file/directory
  *
  * @param dir Folder name you want to recursively process
  * @param found Callback function, returns all files with full path.
- * @param problem Logging function to handle errors encounted
  ----------------------------------------------------------------------*/
-var walkdir = function (dir, found, problem) {
+var walkdir = function (dir, found) {
     fs.readdir(dir, function (err, list) {
         if (err) {
             return problem(err, dir);
@@ -66,7 +99,7 @@ var walkdir = function (dir, found, problem) {
                     problem(err, file);
                 }
                 else if (stat && stat.isDirectory()) {
-                    walkdir(file, found, problem);
+                    walkdir(file, found);
                 }
                 else if (stat.isSymbolicLink()) {
                     // Skip these
@@ -74,10 +107,13 @@ var walkdir = function (dir, found, problem) {
                 }
                 else if (stat.isFile()) {
                     var finfo = {
-                        fname: file, size: stat.size, hash: null
+                        fname: file,
+                        size: stat.size,
+                        hash: null,
+                        inode: stat.ino
                     };
                     todo += 1;
-                    found(finfo, problem);
+                    found(finfo);
                 }
             });
         });
@@ -89,59 +125,31 @@ var walkdir = function (dir, found, problem) {
  * Do not compute hashes until needed because of size dups
  *
  * @param finfo File information object following Finfo protocol
- * @param problem Logging function to handle errors encounted
  ----------------------------------------------------------------------*/
-var accum_by_size = function (finfo, problem) {
+var accum_by_size = function (finfo) {
     var size = finfo.size;
     // The first time we've seen this size
     if (!(size in by_size)) {
+        finfo.hash = "<INODE " + finfo.inode + ">";
         by_size[size] = [finfo];
-        done += 1;
     }
-    // The second time we've seen this size
-    // Need to go back and hash the first entry as well
-    else if (by_size[size].length == 1) {
-        var old_finfo_1 = by_size[size][0];
-        // Hash the existing entry (but don't push it again)
-        fs.readFile(old_finfo_1.fname, function (err, data) {
-            var hash = sha1.create();
-            hash.update(data);
-            if (err) {
-                problem(err, old_finfo_1.fname);
-            }
-            else {
-                old_finfo_1.hash = hash.hex(data);
-            }
-        });
-        // Now also hash the new entry and push it to array
-        fs.readFile(finfo.fname, function (err, data) {
-            var hash = sha1.create();
-            hash.update(data);
-            if (err) {
-                problem(err, finfo.fname);
-            }
-            else {
-                finfo.hash = hash.hex(data);
-                by_size[size].push(finfo);
-                done += 1;
-            }
-        });
-    }
-    // The third or later time, just hash new entry contents
+    // Subsequent files of the same size...
+    // (Maybe) need to go back and add hash to first entry too
     else {
-        fs.readFile(finfo.fname, function (err, data) {
-            var hash = sha1.create();
-            hash.update(data);
-            if (err) {
-                problem(err, finfo.fname);
-            }
-            else {
-                finfo.hash = hash.hex(data);
-                by_size[size].push(finfo);
-                done += 1;
-            }
-        });
+        var thisSize = by_size[size];
+        var first_finfo = thisSize[0];
+        // Trick is whether we actually have multiple inodes already
+        // If not, we can just keep adding the pseudo-hash
+        if (first_finfo.inode == finfo.inode &&
+            first_finfo.hash.startsWith("<INODE")) {
+            finfo.hash = first_finfo.hash;
+        }
+        else {
+            hashAll(by_size[size]);
+        }
+        ;
     }
+    done += 1;
 };
 /*---------------------------------------------------------------------
  * Display report of files having identical content
@@ -157,8 +165,8 @@ var show_dups = function (by_size) {
             // New hash group
             var by_sha1 = {};
             // Loop through all the files of this size
-            for (var _b = 0, finfos_1 = finfos; _b < finfos_1.length; _b++) {
-                var finfo = finfos_1[_b];
+            for (var _b = 0, finfos_2 = finfos; _b < finfos_2.length; _b++) {
+                var finfo = finfos_2[_b];
                 var sha1_1 = finfo.hash;
                 if (!(sha1_1 in by_sha1)) {
                     // The first time we've seen this SHA1 digest
@@ -171,11 +179,11 @@ var show_dups = function (by_size) {
             }
             // Loop through by_sha1 specific to this filesize
             for (var _c = 0, _d = Object.entries(by_sha1); _c < _d.length; _c++) {
-                var _e = _d[_c], sha1_2 = _e[0], finfos_3 = _e[1];
-                if (finfos_3.length > 1) {
-                    console.log("Size: " + size + " | SHA1: " + sha1_2 + "\"");
-                    for (var _f = 0, finfos_2 = finfos_3; _f < finfos_2.length; _f++) {
-                        var finfo = finfos_2[_f];
+                var _e = _d[_c], sha1_2 = _e[0], finfos_4 = _e[1];
+                if (finfos_4.length > 1) {
+                    console.log("Size: " + size + " | SHA1: " + sha1_2);
+                    for (var _f = 0, finfos_3 = finfos_4; _f < finfos_3.length; _f++) {
+                        var finfo = finfos_3[_f];
                         console.log("  " + finfo.fname);
                     }
                 }
@@ -200,7 +208,7 @@ function ShowDups(by_size) {
                     _a.label = 2;
                 case 2:
                     if (!(todo != done)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, sleep(100)];
+                    return [4 /*yield*/, sleep(10)];
                 case 3:
                     _a.sent();
                     return [3 /*break*/, 2];
@@ -216,5 +224,5 @@ function ShowDups(by_size) {
  * The "main()" steps of the script
  ----------------------------------------------------------------------*/
 var dir = process.argv[2];
-walkdir(dir, accum_by_size, console.error);
+walkdir(dir, accum_by_size);
 ShowDups(by_size);
