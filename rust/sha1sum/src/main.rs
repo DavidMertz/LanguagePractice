@@ -1,6 +1,9 @@
+extern crate crypto;
+
 use std::fs;
 use std::env;
-use sha1::Digest;
+use self::crypto::digest::Digest;
+use self::crypto::sha1::Sha1;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -9,7 +12,8 @@ fn main() {
         Ok(content) => content,
         Err(error) => panic!("File error: {}", error),
     };
-    let digest = sha1::Sha1::digest(&content);
-    let hexdigest = format!("{:x}", digest);
+    let mut hash = Sha1::new();
+    hash.input(&content);
+    let hexdigest = hash.result_str();
     println!("{}  {}", hexdigest, fname);
 }

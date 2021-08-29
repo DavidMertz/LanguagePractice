@@ -56,46 +56,49 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit 69da469, the performance of the various versions is
-approximately as shown:
+As of commit e4609b9, the performance of the various versions is approximately
+as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
 
 | Language (options) | Sanity chk  | Wall clock time
 |--------------------|-------------|----------------
-| Golang             | dups 407839 | 14 secs
-| Ruby               | dups 407839 | 17 secs
-| Python             | dups 407839 | 20 secs
-| Julia              | dups 407839 | 41 secs
-| Haskell            | dups 407839 | 67 secs
-| Rust (rust-crypto) | dups 407839 | 169 secs
-| Rust (RustCrypto)  | dups 407839 | 199 secs
-| TypeScript ->.js   | dups 407839 | 347 secs
+| Golang             | dups 457742 | 17 secs
+| Ruby               | dups 457742 | 19 secs
+| Python             | dups 457742 | 22 secs
+| Julia              | dups 457742 | 47 secs
+| Rust (rust-crypto) | dups 457742 | 55 secs
+| Rust (RustCrypto)  | dups 457742 | 62 secs
+| Haskell            | dups 457742 | 77 secs
+| TypeScript ->.js   | dups 457742 | 388 secs
 
-To be fair, an optimization was noticed that has only been implemented in
-Python, Julia, Ruby, and Golang so far.  Specifically, for files of the
-same size that are actually hard links to the same inode, the file will be
-hashed multiple times.  Simply borrowing the hash of what is, after all,
-the identical on-disk location, is presumably cheaper.  This fix makes the
-Python version about 20% faster.
+Two optimizations have been noticed and implemented in Python, Julia, Ruby,
+Golang, and Rust. 
 
-In writing the Ruby implementation, I took advantage of what I learned in
-iterating the languges and versions.  Specifically, as well as taking
-advantage of the optimization "don't hash hard links *multiple times*", I
-extended this to "don't hash size-duplication sets **at all** if they are
-all the same inode."  Given that I've made no attempt (so far) at
-parallelism in Ruby, its success really surprises me, even given the
-mentioned optimization.
+* For paths of the same size that are actually hard links to the same inode,
+the file was initially hashed multiple times.  Simply borrowing the hash of
+what is, after all, the identical on-disk location, is cheaper.  This fix makes
+the Python version about 20% faster.
 
-Haskell can probably be improved since the `-threaded` option discovers
-only a little bit of parallelism.
+* A special case of this is where, in fact, **all** paths of a given size are
+to the same inode.  As well as taking advantage of the optimization "don't hash
+hard links *multiple times*", I extended this to "don't hash size-duplication
+sets **at all** if they are all the same inode." 
 
-Rust is the troubling outlier here, having a reputation as a "fast"
-language.  However, any parallelism that might be found has to be added
-explicitly, and a bit laboriously. The current versions are strictly
-single-core (and also do not implement the logic optimizations about
-links).  Moreover, the unmaintained `rust-crypto` library is substantially
-faster than the "official" `RustCrypto` one, which poses a dilemma.
+I first realized the second case in implementing Ruby.  Given that I've made no
+attempt (so far) at parallelism in Ruby, its near-top place surprises me
+greatly now that several other languages have that same optimization.
+
+Haskell uses the `-threaded` option, but discovers only a little bit of
+parallelism.  However, working out the optimizations in the algorithm will
+likely make much more difference than more parallelism.
+
+Julia was relatively easy to parallelize, and in that case, only parallism
+brough the performance from dreadful to mediocre.
+
+The Rust version now has a switch  between the unmaintained `rust-crypto`
+library which is substantially faster and the "official" `RustCrypto` one.
+Also, the optimization level in Rust turns out to make A LOT of difference.
 
 Even the Node.js JIT interpreter (TypeScript) manages to find a lot of
 parallism for asynchronous callbacks.  The problem there is that the
@@ -103,4 +106,32 @@ underlying SHA1 implementation in JavaScript is about 11x slower than the
 best ones, even with the JIT making a relatively noble attempt (see
 `benchmark-justsha` and the corresponding implementations of `sha1sum`).
 
-## something-else ...
+### Notes on validation
+
+Several languages now have a verbose mode that now reports, among other
+things, the number of hashes actually performed and those skipped in the
+optimizations.  For example, comparing Rust (the latest update) with Golang,
+we see they are entirely consistent:
+
+```
+% rust/find-dups/target/release/find-dups -v $CONDA_PREFIX | wc -l
+verbose true
+min-size 1
+max-size 10,000,000,000
+RustCrypto false
+rootdir /home/dmertz/miniconda3
+Hashes performed: 210,171
+Hashes skipped: 285,026
+568829
+
+% golang/find-dups/find-dups -v $CONDA_PREFIX | wc -l
+max-size 10,000,000,000
+min-size 1
+verbose true
+directory /home/dmertz/miniconda3
+Hashes performed 210,171
+Hashes short-cut 285,026
+568829
+```
+
+## something-else ..

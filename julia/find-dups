@@ -58,6 +58,18 @@ function show_dups(by_size)
         # Within this size, create hash digests in parallel
         digests = Dict{String, String}()
 
+        # Are all paths of this size the same inode?
+        inodes = Set(finfo[2] for finfo in finfos)
+        if length(inodes) == 1
+            lookups_by_inode += length(finfos)
+            inode = finfos[1][2]
+            println("Size: $(size) | SHA1: <INODE $(inode)>")
+            for (path, inode) ∈ finfos
+                println("  $(path)")
+            end
+            continue
+        end
+       
         # Do we have duplicate inodes?
         inodes = Dict{Int64, Array{String}}()
         for (path, inode) ∈ finfos
