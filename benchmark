@@ -40,32 +40,29 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "| Haskell           "
-start=$(date +%s)
-haskell/find-dups $CP 2>/dev/null >find-dups.haskell
-dups=$(grep '^  ' find-dups.haskell | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
 echo -n "| Rust (rust-crypto)"
-cd rust/find-dups-rust-crypto >/dev/null
+cd rust/find-dups >/dev/null
 cargo build --release 2>/dev/null >/dev/null
 cd - >/dev/null
 start=$(date +%s)
-rust/find-dups-rust-crypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust1
-dups=$(grep '^  ' find-dups.rust1 | wc -l)
+rust/find-dups/target/release/find-dups $CP 2>/dev/null >find-dups.rust-old
+dups=$(grep '^  ' find-dups.rust-old | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
 echo -n "| Rust (RustCrypto) "
-cd rust/find-dups-RustCrypto >/dev/null
-cargo build --release 2>/dev/null >/dev/null
-cd - >/dev/null
 start=$(date +%s)
-rust/find-dups-RustCrypto/target/release/find-dups $CP 2>/dev/null >find-dups.rust2
-dups=$(grep '^  ' find-dups.rust2 | wc -l)
+rust/find-dups/target/release/find-dups --RustCrypto $CP 2>/dev/null >find-dups.rust-new
+dups=$(grep '^  ' find-dups.rust-new | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "| Haskell           "
+start=$(date +%s)
+haskell/find-dups $CP 2>/dev/null >find-dups.haskell
+dups=$(grep '^  ' find-dups.haskell | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"

@@ -8,10 +8,13 @@ edition = "2018"
 
 [dependencies]
 walkdir = "2"
+sha-1 = "0.9.7"
 rust-crypto = "^0.2"
+clap = "2"
+num-format = "0.4.0"
 
 [profile.dev]
-opt-level = 0
+opt-level = 3
 
 [profile.release]
 opt-level = 1
