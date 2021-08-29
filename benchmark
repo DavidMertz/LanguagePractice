@@ -32,9 +32,9 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "| Julia             "
+echo -n "| Julia (-O3)       "
 start=$(date +%s)
-julia/find-dups $CP 2>/dev/null >find-dups.julia 
+julia -O3 julia/find-dups $CP 2>/dev/null >find-dups.julia 
 dups=$(grep '^  ' find-dups.julia | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))

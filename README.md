@@ -56,19 +56,19 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit e4609b9, the performance of the various versions is approximately
+As of commit fdd873f, the performance of the various versions is approximately
 as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
 
 | Language (options) | Sanity chk  | Wall clock time
 |--------------------|-------------|----------------
-| Golang             | dups 457742 | 17 secs
-| Ruby               | dups 457742 | 19 secs
-| Python             | dups 457742 | 22 secs
-| Julia              | dups 457742 | 47 secs
-| Rust (rust-crypto) | dups 457742 | 55 secs
-| Rust (RustCrypto)  | dups 457742 | 62 secs
+| Golang             | dups 457742 | 16 secs
+| Ruby               | dups 457742 | 20 secs
+| Python             | dups 457742 | 21 secs
+| Julia              | dups 457742 | 25 secs
+| Rust (rust-crypto) | dups 457742 | 19 secs
+| Rust (RustCrypto)  | dups 457742 | 20 secs
 | Haskell            | dups 457742 | 77 secs
 | TypeScript ->.js   | dups 457742 | 388 secs
 
