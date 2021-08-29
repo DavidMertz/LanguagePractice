@@ -10,5 +10,7 @@ Session.vim
 tags
 
 sz.db
+typescript/package-lock.json
 /find-dups.*
 data
+test.*

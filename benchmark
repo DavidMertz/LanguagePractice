@@ -1,14 +1,14 @@
 #!/bin/bash
 echo "Each language reports file count and time elapsed for CONDA_PREFIX"
 echo
-echo "| Language (options) | Sanity chk  | Wall clock time"
-echo "|--------------------|-------------|----------------"
+echo "| Language (options)   | Sanity chk  | Wall clock time"
+echo "|----------------------|-------------|----------------"
 
 JULIA_NUM_THREADS=$(nproc)
 NODE_OPTIONS="--max-old-space-size=8192"
 CP=$CONDA_PREFIX
 
-echo -n "| Golang            "
+echo -n "| Golang              "
 start=$(date +%s)
 golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang
 dups=$(grep '^  ' find-dups.golang | wc -l)
@@ -16,31 +16,7 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "| Ruby              "
-start=$(date +%s)
-ruby/find-dups $CP 2>/dev/null >find-dups.ruby
-dups=$(grep '^  ' find-dups.ruby | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
-echo -n "| Python            "
-start=$(date +%s)
-python/find-dups $CP >find-dups.python 2>/dev/null
-dups=$(grep '^  ' find-dups.python | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
-echo -n "| Julia (-O3)       "
-start=$(date +%s)
-julia -O3 julia/find-dups $CP 2>/dev/null >find-dups.julia 
-dups=$(grep '^  ' find-dups.julia | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
-echo -n "| Rust (rust-crypto)"
+echo -n "| Rust (rust-crypto)  "
 cd rust/find-dups >/dev/null
 cargo build --release 2>/dev/null >/dev/null
 cd - >/dev/null
@@ -51,7 +27,7 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "| Rust (RustCrypto) "
+echo -n "| Rust (RustCrypto)   "
 start=$(date +%s)
 rust/find-dups/target/release/find-dups --RustCrypto $CP 2>/dev/null >find-dups.rust-new
 dups=$(grep '^  ' find-dups.rust-new | wc -l)
@@ -59,7 +35,51 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "| Haskell           "
+echo -n "| Ruby                "
+start=$(date +%s)
+ruby/find-dups $CP 2>/dev/null >find-dups.ruby
+dups=$(grep '^  ' find-dups.ruby | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "| Python              "
+start=$(date +%s)
+python/find-dups $CP >find-dups.python 2>/dev/null
+dups=$(grep '^  ' find-dups.python | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "| Julia (-O3)         "
+start=$(date +%s)
+julia -O3 julia/find-dups $CP 2>/dev/null >find-dups.julia 
+dups=$(grep '^  ' find-dups.julia | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "| TypeScript (Rusha)  "
+cd typescript >/dev/null
+tsc find-dups.ts
+cp find-dups.js find-dups
+cd - >/dev/null
+start=$(date +%s)
+typescript/find-dups -r $CP 2>/dev/null >find-dups.typescript
+dups=$(grep '^  ' find-dups.typescript | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "| TypeScript (js-sha1)"
+start=$(date +%s)
+typescript/find-dups -j $CP 2>/dev/null >find-dups.typescript
+dups=$(grep '^  ' find-dups.typescript | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "| Haskell             "
 start=$(date +%s)
 haskell/find-dups $CP 2>/dev/null >find-dups.haskell
 dups=$(grep '^  ' find-dups.haskell | wc -l)
@@ -67,19 +87,8 @@ end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-echo -n "| TypeScript ->.js  "
-cd typescript >/dev/null
-tsc find-dups.ts
-cd - >/dev/null
-start=$(date +%s)
-typescript/find-dups.js $CP 2>/dev/null >find-dups.typescript
-dups=$(grep '^  ' find-dups.typescript | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
 # Far too slow to run very much
-#echo -n "Bash"
+#echo -n "| Bash                "
 #start=$(date +%s)
 #bash/find-dups $CP >find-dups.bash
 #dups=$(grep '^  ' find-dups.bash | wc -l)
