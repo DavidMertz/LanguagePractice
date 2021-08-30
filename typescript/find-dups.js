@@ -47,18 +47,19 @@ var inodeCache = {};
 /* Callbacks and completion of each for a spin-wait */
 var ticker = 0;
 var hashes_performed = 0;
+var promises = [];
 /* Handle conditional flags with globals (probably not best apprach) */
-var shaLib = "rusha";
+var shaLib = "js-sha1";
 var problem = console.error;
+var verbose = false;
 /* Put hashing in a function to cache and choose library */
-var getDigest = function (data) {
+function getDigest(data) {
     var offset = 0;
     var chunksize = 100000;
     if (shaLib == "rusha") {
         // rusha
         var hash = Rusha.createHash();
         while (true) {
-            ticker += 1;
             var segment = data.slice(offset, offset + chunksize);
             hash.update(segment);
             offset += chunksize;
@@ -72,7 +73,6 @@ var getDigest = function (data) {
         // js-sha1
         var hash = sha1.create();
         while (true) {
-            ticker += 1;
             var segment = data.slice(offset, offset + chunksize);
             hash.update(segment);
             offset += chunksize;
@@ -88,32 +88,41 @@ var getDigest = function (data) {
     }
     hashes_performed += 1;
     return digest;
-};
+}
 /* Add hashes to all same-size finfos in an array (caching saves work) */
-var hashFinfos = function (finfos) {
-    var updatedFinfos = [];
-    var size = finfos[0].size;
-    for (var _i = 0, finfos_1 = finfos; _i < finfos_1.length; _i++) {
-        var finfo = finfos_1[_i];
-        ticker += 1;
-        // The cheap case is using a cached inode
-        if (finfo.inode in inodeCache) {
-            finfo.hash = inodeCache[finfo.inode];
-            updatedFinfos.push(finfo);
+function hashFinfos(finfos) {
+    return new Promise(function (resolve, reject) {
+        var updatedFinfos = [];
+        var size = finfos[0].size;
+        for (var _i = 0, finfos_1 = finfos; _i < finfos_1.length; _i++) {
+            var finfo = finfos_1[_i];
+            // The cheap case is using a cached inode
+            if (finfo.inode in inodeCache) {
+                finfo.hash = inodeCache[finfo.inode];
+                updatedFinfos.push(finfo);
+            }
+            // More work is actually performing a hash
+            else {
+                var data = fs.readFileSync(finfo.fname);
+                var digestPromise = getDigest(data);
+                promises.push(digestPromise);
+                finfo.hash = digestPromise;
+                inodeCache[finfo.inode] = finfo.hash;
+                updatedFinfos.push(finfo);
+            }
+            ;
         }
-        // More work is actually performing a hash
+        ;
+        by_size[size] = updatedFinfos;
+        if (true) {
+            resolve(updatedFinfos.length);
+        }
         else {
-            ticker += 1;
-            var data = fs.readFileSync(finfo.fname);
-            ticker += 1;
-            finfo.hash = getDigest(data);
-            inodeCache[finfo.inode] = finfo.hash;
-            updatedFinfos.push(finfo);
+            // In concept this is where we could fail promise
+            reject(666);
         }
-    }
-    ;
-    by_size[size] = updatedFinfos;
-};
+    });
+}
 /*---------------------------------------------------------------------
  * Recursively and asynchronously walk directory
  *
@@ -140,7 +149,7 @@ var walkdir = function (dir, found) {
                 }
                 else if (stat.isSymbolicLink()) {
                     // Skip these
-                    problem(null, "Skipping symlink " + file);
+                    //problem(null, `Skipping symlink ${file}`);
                 }
                 else if (stat.isFile()) {
                     var finfo = {
@@ -185,7 +194,8 @@ var accum_by_size = function (finfo) {
             // Add the new finfo first
             by_size[size].push(finfo);
             // Now ready to enforce actual hashes on all entries
-            hashFinfos(by_size[size]);
+            ticker += 1;
+            promises.push(hashFinfos(by_size[size]));
         }
     }
 };
@@ -240,20 +250,27 @@ function waitForShowDups() {
             switch (_a.label) {
                 case 0:
                     progress = ticker;
-                    return [4 /*yield*/, sleep(1000)];
+                    return [4 /*yield*/, sleep(30000)];
                 case 1:
                     _a.sent();
                     _a.label = 2;
                 case 2:
                     if (!(progress < ticker)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, sleep(5000)];
+                    return [4 /*yield*/, sleep(4 * promises.length)];
                 case 3:
                     _a.sent();
                     progress = ticker;
                     return [3 /*break*/, 2];
                 case 4:
                     // Now call the actual report function
-                    showDups();
+                    Promise.allSettled(promises).then(function (results) {
+                        showDups();
+                        if (verbose) {
+                            console.error("Ticker: " + ticker);
+                            console.error("Promises: " + promises.length);
+                            console.error("Hashes: " + hashes_performed);
+                        }
+                    });
                     return [2 /*return*/];
             }
         });
@@ -294,7 +311,9 @@ var cmd = cmd_ts_1.command({
         if (args.rusha) {
             shaLib = "rusha";
         }
-        if (args.verbose) {
+        verbose = args.verbose;
+        if (verbose) {
+            console.error("SHA1-lib: " + shaLib);
             for (var _i = 0, _a = Object.keys(args); _i < _a.length; _i++) {
                 var key = _a[_i];
                 console.error(key + ": " + args[key]);

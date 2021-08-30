@@ -34,20 +34,21 @@ let inodeCache: InodeCache = {};
 /* Callbacks and completion of each for a spin-wait */
 let ticker: number = 0;
 let hashes_performed = 0;
+let promises = [];
 
 /* Handle conditional flags with globals (probably not best apprach) */
-let shaLib = "rusha";
+let shaLib = "js-sha1";
 let problem = console.error;
+let verbose = false;
 
 /* Put hashing in a function to cache and choose library */
-const getDigest = (data: Buffer) => {
+function getDigest(data: Buffer): string {
     let offset = 0;
     let chunksize = 100000;
     if (shaLib == "rusha") {
         // rusha
         let hash = Rusha.createHash()
         while (true) {
-            ticker += 1;
             let segment = data.slice(offset, offset+chunksize);
             hash.update(segment);
             offset += chunksize;
@@ -59,7 +60,6 @@ const getDigest = (data: Buffer) => {
         // js-sha1
         let hash = sha1.create();
         while (true) {
-            ticker += 1;
             let segment = data.slice(offset, offset+chunksize);
             hash.update(segment);
             offset += chunksize;
@@ -72,31 +72,39 @@ const getDigest = (data: Buffer) => {
         var digest = "NO SHA1 PERFORMED";
     }
     hashes_performed += 1;
-    return digest;
-};
+    return digest
+}
 
 /* Add hashes to all same-size finfos in an array (caching saves work) */
-const hashFinfos = (finfos: Finfo[]) => {
-    let updatedFinfos = [];
-    let size = finfos[0].size;
-    for (var finfo of finfos) {
-        ticker += 1;
-        // The cheap case is using a cached inode
-        if (finfo.inode in inodeCache) {
-            finfo.hash = inodeCache[finfo.inode];
-            updatedFinfos.push(finfo);
+function hashFinfos(finfos: Finfo[]): Promise<number> {
+    return new Promise((resolve, reject) => {
+        let updatedFinfos = [];
+        let size = finfos[0].size;
+        for (var finfo of finfos) {
+            // The cheap case is using a cached inode
+            if (finfo.inode in inodeCache) {
+                finfo.hash = inodeCache[finfo.inode];
+                updatedFinfos.push(finfo);
+            }
+            // More work is actually performing a hash
+            else {
+                let data = fs.readFileSync(finfo.fname);
+                let digestPromise = getDigest(data)
+                promises.push(digestPromise);
+                finfo.hash = digestPromise;
+                inodeCache[finfo.inode] = finfo.hash;
+                updatedFinfos.push(finfo);
+            };
+        };
+        by_size[size] = updatedFinfos;
+        if (true) {
+            resolve(updatedFinfos.length);
         }
-        // More work is actually performing a hash
         else {
-            ticker += 1
-            let data = fs.readFileSync(finfo.fname);
-            ticker += 1
-            finfo.hash = getDigest(data);
-            inodeCache[finfo.inode] = finfo.hash;
-            updatedFinfos.push(finfo);
+            // In concept this is where we could fail promise
+            reject(666);
         }
-    };
-    by_size[size] = updatedFinfos;
+    });
 }
 
 /*---------------------------------------------------------------------
@@ -125,7 +133,7 @@ const walkdir = (
                     walkdir(file, found); }
                 else if (stat.isSymbolicLink()) {
                     // Skip these
-                    problem(null, `Skipping symlink ${file}`);
+                    //problem(null, `Skipping symlink ${file}`);
                 }
                 else if (stat.isFile()) {
                     let finfo: Finfo = { 
@@ -171,7 +179,8 @@ const accum_by_size = (finfo: Finfo) => {
             by_size[size].push(finfo);
 
             // Now ready to enforce actual hashes on all entries
-            hashFinfos(by_size[size]);
+            ticker += 1
+            promises.push(hashFinfos(by_size[size]));
         }
     }
 };
@@ -220,20 +229,27 @@ function sleep(ms) {
 async function waitForShowDups() {
     // Initial sleep to make sure some files have been walked
     let progress = ticker;
-    await sleep(1000);
-    // Sleep as needed until processing has finished
+    await sleep(30000);
+    // Sleep as needed until promises all made (i.e. hashing queued)
+    // Adjust the sleep slightly crudely, but dynamically
     while (progress < ticker) { 
-        await sleep(10000); 
+        await sleep(4*promises.length); 
         progress = ticker;
     }
     // Now call the actual report function
-    showDups();
+    Promise.allSettled(promises).then((results) => {
+        showDups();
+        if (verbose) {
+            console.error(`Ticker: ${ticker}`);
+            console.error(`Promises: ${promises.length}`);
+            console.error(`Hashes: ${hashes_performed}`);
+        }
+    });
 }
 
 /*---------------------------------------------------------------------
  * The "main()" steps of the script
  ----------------------------------------------------------------------*/
-
 const cmd = command({
     name: "find-dups",
     description: 'Find files with identical contents',
@@ -262,7 +278,9 @@ const cmd = command({
     handler: args => {
         if (args.jsSha1) { shaLib = "js-sha1"; }
         if (args.rusha)  { shaLib = "rusha"; }
-        if (args.verbose) {
+        verbose = args.verbose;
+        if (verbose) {
+            console.error(`SHA1-lib: ${shaLib}`);
             for (let key of Object.keys(args)) {
                 console.error(`${key}: ${args[key]}`);
             }

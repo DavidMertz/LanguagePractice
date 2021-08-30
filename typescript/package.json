@@ -9,6 +9,6 @@
     "ts-command-line-args": "^2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^16.7.1"
+    "@types/node": "^16.7.6"
   }
 }
