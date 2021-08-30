@@ -106,7 +106,7 @@ Promises. However, I simply could not coordinate the asynchronous
 `fs.readdir()` for the range of tree sizes.  I had initially used hand-tuned
 delays to do "enough" tree-walking before doing the parallel hashing
 (otherwise, the script would end prematurely when nothing was "queued" in
-Promiseis; but that was sensitive to the exact root directory.  The main problem
+Promises; but that was sensitive to the exact root directory.  The main problem
 in the TypeScript implementation is that the underlying SHA1 implementation in
 JavaScript is about 11x slower than the best ones, even with the JIT making a
 relatively noble attempt (see `benchmark-justsha` and the corresponding
