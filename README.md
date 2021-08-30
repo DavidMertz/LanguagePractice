@@ -56,24 +56,25 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit fdd873f, the performance of the various versions is approximately
+As of commit f32658f, the performance of the various versions is approximately
 as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
 
-| Language (options) | Sanity chk  | Wall clock time
-|--------------------|-------------|----------------
-| Golang             | dups 457742 | 16 secs
-| Ruby               | dups 457742 | 20 secs
-| Python             | dups 457742 | 21 secs
-| Julia              | dups 457742 | 25 secs
-| Rust (rust-crypto) | dups 457742 | 19 secs
-| Rust (RustCrypto)  | dups 457742 | 20 secs
-| Haskell            | dups 457742 | 77 secs
-| TypeScript ->.js   | dups 457742 | 388 secs
+| Language (options)   | Sanity chk  | Wall clock time
+|----------------------|-------------|----------------
+| Golang               | dups 457742 | 17 secs
+| Rust (rust-crypto)   | dups 457742 | 19 secs
+| Rust (RustCrypto)    | dups 457742 | 20 secs
+| Ruby                 | dups 457742 | 20 secs
+| Python               | dups 457742 | 22 secs
+| Julia (-O3)          | dups 457742 | 27 secs
+| Haskell              | dups 457742 | 79 secs
+| TypeScript (js-sha1) | dups 457742 | 79 secs
+| TypeScript (Rusha)   | dups 457742 | 94 secs
 
 Two optimizations have been noticed and implemented in Python, Julia, Ruby,
-Golang, and Rust. 
+Golang, Rust, and TypeScript. 
 
 * For paths of the same size that are actually hard links to the same inode,
 the file was initially hashed multiple times.  Simply borrowing the hash of
@@ -93,18 +94,24 @@ Haskell uses the `-threaded` option, but discovers only a little bit of
 parallelism.  However, working out the optimizations in the algorithm will
 likely make much more difference than more parallelism.
 
-Julia was relatively easy to parallelize, and in that case, only parallism
-brough the performance from dreadful to mediocre.
+Julia was relatively easy to parallelize, and in that case, parallelism
+brought the performance from dreadful to mediocre.
 
 The Rust version now has a switch  between the unmaintained `rust-crypto`
 library which is substantially faster and the "official" `RustCrypto` one.
 Also, the optimization level in Rust turns out to make A LOT of difference.
 
-Even the Node.js JIT interpreter (TypeScript) manages to find a lot of
-parallism for asynchronous callbacks.  The problem there is that the
-underlying SHA1 implementation in JavaScript is about 11x slower than the
-best ones, even with the JIT making a relatively noble attempt (see
-`benchmark-justsha` and the corresponding implementations of `sha1sum`).
+The Node.js JIT interpreter (TypeScript) manages to find a lot of parallism for
+Promises. However, I simply could not coordinate the asynchronous
+`fs.readdir()` for the range of tree sizes.  I had initially used hand-tuned
+delays to do "enough" tree-walking before doing the parallel hashing
+(otherwise, the script would end prematurely when nothing was "queued" in
+Promiseis; but that was sensitive to the exact root directory.  The main problem
+in the TypeScript implementation is that the underlying SHA1 implementation in
+JavaScript is about 11x slower than the best ones, even with the JIT making a
+relatively noble attempt (see `benchmark-justsha` and the corresponding
+implementations of `sha1sum`). Analogous to Rust, one library that is faster
+for a single operation is slower when parallelized.
 
 ### Notes on validation
 
