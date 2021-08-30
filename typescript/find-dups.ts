@@ -32,8 +32,8 @@ interface InodeCache {
 let inodeCache: InodeCache = {};
 
 /* Callbacks and completion of each for a spin-wait */
-let todo: number = 0;
-let done: number = 0;
+let ticker: number = 0;
+let hashes_performed = 0;
 
 /* Handle conditional flags with globals (probably not best apprach) */
 let shaLib = "rusha";
@@ -41,58 +41,62 @@ let problem = console.error;
 
 /* Put hashing in a function to cache and choose library */
 const getDigest = (data: Buffer) => {
+    let offset = 0;
+    let chunksize = 100000;
     if (shaLib == "rusha") {
         // rusha
         let hash = Rusha.createHash()
-        hash.update(data);
+        while (true) {
+            ticker += 1;
+            let segment = data.slice(offset, offset+chunksize);
+            hash.update(segment);
+            offset += chunksize;
+            if (segment.length < chunksize) { break }
+        }
         var digest = hash.digest('hex');
     }
     else if (shaLib == "js-sha1") {
         // js-sha1
         let hash = sha1.create();
-        hash.update(data);
+        while (true) {
+            ticker += 1;
+            let segment = data.slice(offset, offset+chunksize);
+            hash.update(segment);
+            offset += chunksize;
+            if (segment.length < chunksize) { break }
+        }
         var digest = hash.hex();
     }
     else {
         // the fallback?
         var digest = "NO SHA1 PERFORMED";
     }
+    hashes_performed += 1;
     return digest;
 };
 
-/* Add hashes to all finfos in an array (use caching to save work) */
+/* Add hashes to all same-size finfos in an array (caching saves work) */
 const hashFinfos = (finfos: Finfo[]) => {
-    for (let finfo of finfos) {
+    let updatedFinfos = [];
+    let size = finfos[0].size;
+    for (var finfo of finfos) {
+        ticker += 1;
         // The cheap case is using a cached inode
         if (finfo.inode in inodeCache) {
             finfo.hash = inodeCache[finfo.inode];
+            updatedFinfos.push(finfo);
         }
         // More work is actually performing a hash
         else {
+            ticker += 1
             let data = fs.readFileSync(finfo.fname);
+            ticker += 1
             finfo.hash = getDigest(data);
             inodeCache[finfo.inode] = finfo.hash;
-
+            updatedFinfos.push(finfo);
         }
-     }
-/*   
-    // Hash the existing entry (but don't push it again)
-    fs.readFile(old_finfo.fname, (err, data: Buffer): void => {
-        if (err) { problem(err, old_finfo.fname); } 
-        else {
-            old_finfo.hash = getDigest(data);
-        }
-    });
-    // Now also hash the new entry and push it to array
-    fs.readFile(finfo.fname, (err, data: Buffer) => {
-        if (err) { problem(err, finfo.fname); } 
-        else {
-            finfo.hash = getDigest(data);
-            by_size[size].push(finfo);
-            done += 1;
-        }
-    });
-*/
+    };
+    by_size[size] = updatedFinfos;
 }
 
 /*---------------------------------------------------------------------
@@ -112,6 +116,7 @@ const walkdir = (
         if (err) { return problem(err, dir); }
 
         list.forEach((file: string) => {
+            ticker += 1;
             file = path.resolve(dir, file);
             fs.lstat(file, (err2, stat) => {
                 if (err2) { 
@@ -128,7 +133,6 @@ const walkdir = (
                             size: stat.size, 
                             hash: null, 
                             inode: stat.ino }
-                    todo += 1;
                     found(finfo); 
                 }
             });
@@ -144,13 +148,13 @@ const walkdir = (
  * @param finfo File information object following Finfo protocol
  ----------------------------------------------------------------------*/
 const accum_by_size = (finfo: Finfo) => {
+    ticker += 1;
     let size = finfo.size;
     // The first time we've seen this size
     if (! (size in by_size)) {
         // Add a "pseudo-hash" which may suffice
         finfo.hash = `<INODE ${finfo.inode}>`;
         by_size[size] = [finfo];
-        done += 1;
     }
     // This is a later time seeing this size 
     // May or may not need to hash prior entries
@@ -160,16 +164,14 @@ const accum_by_size = (finfo: Finfo) => {
         if (finfo.inode == old_finfo.inode) {
             finfo.hash = old_finfo.hash;
             by_size[size].push(finfo);
-            done +=1;
         }
-        // There are two inodes involved, need to do actual hashing
+        // There multiple inodes involved, need to do actual hashing
         else {
             // Add the new finfo first
             by_size[size].push(finfo);
 
             // Now ready to enforce actual hashes on all entries
             hashFinfos(by_size[size]);
-            done += 1;
         }
     }
 };
@@ -179,9 +181,7 @@ const accum_by_size = (finfo: Finfo) => {
  *
  * @param by_size Mapping of sizes to array of Finfo objects
  ----------------------------------------------------------------------*/
-const show_dups = (
-    by_size: SizeGroups
-) => {
+const showDups = () => {
     // Loop through all the file sizes in reverse order
     for (let size of Object.keys(by_size).reverse()) {
         let finfos: Finfo[] = by_size[size];
@@ -217,13 +217,17 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function showDups(by_size: SizeGroups) {
-    // Initial sleep to make sure some files are in TODO
-    await sleep(100);
-    // Sleep as needed for accum_by_size to catch up to walkdir
-    while (todo != done) { await sleep(100); }
+async function waitForShowDups() {
+    // Initial sleep to make sure some files have been walked
+    let progress = ticker;
+    await sleep(1000);
+    // Sleep as needed until processing has finished
+    while (progress < ticker) { 
+        await sleep(10000); 
+        progress = ticker;
+    }
     // Now call the actual report function
-    show_dups(by_size);
+    showDups();
 }
 
 /*---------------------------------------------------------------------
@@ -249,13 +253,22 @@ const cmd = command({
             short: "r",
             type: boolean 
         }),
+        verbose: flag({
+            long: "verbose",
+            short: "v",
+            type: boolean 
+        })
     },
     handler: args => {
         if (args.jsSha1) { shaLib = "js-sha1"; }
         if (args.rusha)  { shaLib = "rusha"; }
-        console.error(args);
+        if (args.verbose) {
+            for (let key of Object.keys(args)) {
+                console.error(`${key}: ${args[key]}`);
+            }
+        }
         walkdir(args.rootdir, accum_by_size);
-        showDups(by_size);
+        waitForShowDups();
    },
 });
 run(cmd, process.argv.slice(2));

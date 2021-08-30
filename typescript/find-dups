@@ -45,64 +45,74 @@ var cmd_ts_1 = require("cmd-ts");
 var by_size = {};
 var inodeCache = {};
 /* Callbacks and completion of each for a spin-wait */
-var todo = 0;
-var done = 0;
+var ticker = 0;
+var hashes_performed = 0;
 /* Handle conditional flags with globals (probably not best apprach) */
 var shaLib = "rusha";
 var problem = console.error;
 /* Put hashing in a function to cache and choose library */
 var getDigest = function (data) {
+    var offset = 0;
+    var chunksize = 100000;
     if (shaLib == "rusha") {
         // rusha
         var hash = Rusha.createHash();
-        hash.update(data);
+        while (true) {
+            ticker += 1;
+            var segment = data.slice(offset, offset + chunksize);
+            hash.update(segment);
+            offset += chunksize;
+            if (segment.length < chunksize) {
+                break;
+            }
+        }
         var digest = hash.digest('hex');
     }
     else if (shaLib == "js-sha1") {
         // js-sha1
         var hash = sha1.create();
-        hash.update(data);
+        while (true) {
+            ticker += 1;
+            var segment = data.slice(offset, offset + chunksize);
+            hash.update(segment);
+            offset += chunksize;
+            if (segment.length < chunksize) {
+                break;
+            }
+        }
         var digest = hash.hex();
     }
     else {
         // the fallback?
         var digest = "NO SHA1 PERFORMED";
     }
+    hashes_performed += 1;
     return digest;
 };
-/* Add hashes to all finfos in an array (use caching to save work) */
+/* Add hashes to all same-size finfos in an array (caching saves work) */
 var hashFinfos = function (finfos) {
+    var updatedFinfos = [];
+    var size = finfos[0].size;
     for (var _i = 0, finfos_1 = finfos; _i < finfos_1.length; _i++) {
         var finfo = finfos_1[_i];
+        ticker += 1;
         // The cheap case is using a cached inode
         if (finfo.inode in inodeCache) {
             finfo.hash = inodeCache[finfo.inode];
+            updatedFinfos.push(finfo);
         }
         // More work is actually performing a hash
         else {
+            ticker += 1;
             var data = fs.readFileSync(finfo.fname);
+            ticker += 1;
             finfo.hash = getDigest(data);
             inodeCache[finfo.inode] = finfo.hash;
+            updatedFinfos.push(finfo);
         }
     }
-    /*
-        // Hash the existing entry (but don't push it again)
-        fs.readFile(old_finfo.fname, (err, data: Buffer): void => {
-            if (err) { problem(err, old_finfo.fname); }
-            else {
-                old_finfo.hash = getDigest(data);
-            }
-        });
-        // Now also hash the new entry and push it to array
-        fs.readFile(finfo.fname, (err, data: Buffer) => {
-            if (err) { problem(err, finfo.fname); }
-            else {
-                finfo.hash = getDigest(data);
-                by_size[size].push(finfo);
-                done += 1;
-            }
-        });
-    */
+    ;
+    by_size[size] = updatedFinfos;
 };
 /*---------------------------------------------------------------------
  * Recursively and asynchronously walk directory
@@ -119,6 +129,7 @@ var walkdir = function (dir, found) {
             return problem(err, dir);
         }
         list.forEach(function (file) {
+            ticker += 1;
             file = path.resolve(dir, file);
             fs.lstat(file, function (err2, stat) {
                 if (err2) {
@@ -138,7 +149,6 @@ var walkdir = function (dir, found) {
                         hash: null,
                         inode: stat.ino
                     };
-                    todo += 1;
                     found(finfo);
                 }
             });
@@ -153,13 +163,13 @@ var walkdir = function (dir, found) {
  * @param finfo File information object following Finfo protocol
  ----------------------------------------------------------------------*/
 var accum_by_size = function (finfo) {
+    ticker += 1;
     var size = finfo.size;
     // The first time we've seen this size
     if (!(size in by_size)) {
         // Add a "pseudo-hash" which may suffice
         finfo.hash = "<INODE " + finfo.inode + ">";
         by_size[size] = [finfo];
-        done += 1;
     }
     // This is a later time seeing this size 
     // May or may not need to hash prior entries
@@ -169,15 +179,13 @@ var accum_by_size = function (finfo) {
         if (finfo.inode == old_finfo.inode) {
             finfo.hash = old_finfo.hash;
             by_size[size].push(finfo);
-            done += 1;
         }
-        // There are two inodes involved, need to do actual hashing
+        // There multiple inodes involved, need to do actual hashing
         else {
             // Add the new finfo first
             by_size[size].push(finfo);
             // Now ready to enforce actual hashes on all entries
             hashFinfos(by_size[size]);
-            done += 1;
         }
     }
 };
@@ -186,7 +194,7 @@ var accum_by_size = function (finfo) {
  *
  * @param by_size Mapping of sizes to array of Finfo objects
  ----------------------------------------------------------------------*/
-var show_dups = function (by_size) {
+var showDups = function () {
     // Loop through all the file sizes in reverse order
     for (var _i = 0, _a = Object.keys(by_size).reverse(); _i < _a.length; _i++) {
         var size = _a[_i];
@@ -225,26 +233,27 @@ var show_dups = function (by_size) {
 function sleep(ms) {
     return new Promise(function (resolve) { return setTimeout(resolve, ms); });
 }
-function showDups(by_size) {
+function waitForShowDups() {
     return __awaiter(this, void 0, void 0, function () {
+        var progress;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: 
-                // Initial sleep to make sure some files are in TODO
-                return [4 /*yield*/, sleep(100)];
+                case 0:
+                    progress = ticker;
+                    return [4 /*yield*/, sleep(1000)];
                 case 1:
-                    // Initial sleep to make sure some files are in TODO
                     _a.sent();
                     _a.label = 2;
                 case 2:
-                    if (!(todo != done)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, sleep(100)];
+                    if (!(progress < ticker)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, sleep(5000)];
                 case 3:
                     _a.sent();
+                    progress = ticker;
                     return [3 /*break*/, 2];
                 case 4:
                     // Now call the actual report function
-                    show_dups(by_size);
+                    showDups();
                     return [2 /*return*/];
             }
         });
@@ -271,6 +280,11 @@ var cmd = cmd_ts_1.command({
             long: "use-rusha-sha",
             short: "r",
             type: cmd_ts_1.boolean
+        }),
+        verbose: cmd_ts_1.flag({
+            long: "verbose",
+            short: "v",
+            type: cmd_ts_1.boolean
         })
     },
     handler: function (args) {
@@ -280,9 +294,14 @@ var cmd = cmd_ts_1.command({
         if (args.rusha) {
             shaLib = "rusha";
         }
-        console.error(args);
+        if (args.verbose) {
+            for (var _i = 0, _a = Object.keys(args); _i < _a.length; _i++) {
+                var key = _a[_i];
+                console.error(key + ": " + args[key]);
+            }
+        }
         walkdir(args.rootdir, accum_by_size);
-        showDups(by_size);
+        waitForShowDups();
     }
 });
 cmd_ts_1.run(cmd, process.argv.slice(2));

@@ -8,6 +8,26 @@ JULIA_NUM_THREADS=$(nproc)
 NODE_OPTIONS="--max-old-space-size=8192"
 CP=$CONDA_PREFIX
 
+echo -n "| TypeScript (Rusha)  "
+cd typescript >/dev/null
+tsc find-dups.ts
+cp find-dups.js find-dups
+cd - >/dev/null
+start=$(date +%s)
+typescript/find-dups -r $CP 2>/dev/null >find-dups.typescript
+dups=$(grep '^  ' find-dups.typescript | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
+echo -n "| TypeScript (js-sha1)"
+start=$(date +%s)
+typescript/find-dups -j $CP 2>/dev/null >find-dups.typescript
+dups=$(grep '^  ' find-dups.typescript | wc -l)
+end=$(date +%s)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+
 echo -n "| Golang              "
 start=$(date +%s)
 golang/find-dups/find-dups $CP 2>/dev/null >find-dups.golang
@@ -55,26 +75,6 @@ echo -n "| Julia (-O3)         "
 start=$(date +%s)
 julia -O3 julia/find-dups $CP 2>/dev/null >find-dups.julia 
 dups=$(grep '^  ' find-dups.julia | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
-echo -n "| TypeScript (Rusha)  "
-cd typescript >/dev/null
-tsc find-dups.ts
-cp find-dups.js find-dups
-cd - >/dev/null
-start=$(date +%s)
-typescript/find-dups -r $CP 2>/dev/null >find-dups.typescript
-dups=$(grep '^  ' find-dups.typescript | wc -l)
-end=$(date +%s)
-secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-echo " | dups $dups | $secs"
-
-echo -n "| TypeScript (js-sha1)"
-start=$(date +%s)
-typescript/find-dups -j $CP 2>/dev/null >find-dups.typescript
-dups=$(grep '^  ' find-dups.typescript | wc -l)
 end=$(date +%s)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
