@@ -45,7 +45,6 @@ var cmd_ts_1 = require("cmd-ts");
 var by_size = {};
 var inodeCache = {};
 /* Callbacks and completion of each for a spin-wait */
-var ticker = 0;
 var hashes_performed = 0;
 var promises = [];
 /* Handle conditional flags with globals (probably not best apprach) */
@@ -124,44 +123,35 @@ function hashFinfos(finfos) {
     });
 }
 /*---------------------------------------------------------------------
- * Recursively and asynchronously walk directory
+ * Recursively walk directory
  *
- * Callbacks for found `file` encountered will be provided with full
+ * Callbacks for found `fname` encountered will be provided with full
  * paths to the relevant file/directory
  *
  * @param dir Folder name you want to recursively process
  * @param found Callback function, returns all files with full path.
  ----------------------------------------------------------------------*/
 var walkdir = function (dir, found) {
-    fs.readdir(dir, function (err, list) {
-        if (err) {
-            return problem(err, dir);
+    var filenames = fs.readdirSync(dir);
+    filenames.forEach(function (fname) {
+        fname = path.resolve(dir, fname);
+        var stat = fs.lstatSync(fname);
+        if (stat && stat.isDirectory()) {
+            walkdir(fname, found);
         }
-        list.forEach(function (file) {
-            ticker += 1;
-            file = path.resolve(dir, file);
-            fs.lstat(file, function (err2, stat) {
-                if (err2) {
-                    problem(err, file);
-                }
-                else if (stat && stat.isDirectory()) {
-                    walkdir(file, found);
-                }
-                else if (stat.isSymbolicLink()) {
-                    // Skip these
-                    //problem(null, `Skipping symlink ${file}`);
-                }
-                else if (stat.isFile()) {
-                    var finfo = {
-                        fname: file,
-                        size: stat.size,
-                        hash: null,
-                        inode: stat.ino
-                    };
-                    found(finfo);
-                }
-            });
-        });
+        else if (stat.isSymbolicLink()) {
+            // Skip these
+            //problem(null, `Skipping symlink ${file}`);
+        }
+        else if (stat.isFile()) {
+            var finfo = {
+                fname: fname,
+                size: stat.size,
+                hash: null,
+                inode: stat.ino
+            };
+            found(finfo);
+        }
     });
 };
 /*---------------------------------------------------------------------
@@ -172,7 +162,6 @@ var walkdir = function (dir, found) {
  * @param finfo File information object following Finfo protocol
  ----------------------------------------------------------------------*/
 var accum_by_size = function (finfo) {
-    ticker += 1;
     var size = finfo.size;
     // The first time we've seen this size
     if (!(size in by_size)) {
@@ -194,7 +183,6 @@ var accum_by_size = function (finfo) {
             // Add the new finfo first
             by_size[size].push(finfo);
             // Now ready to enforce actual hashes on all entries
-            ticker += 1;
             promises.push(hashFinfos(by_size[size]));
         }
     }
@@ -239,40 +227,23 @@ var showDups = function () {
         }
     }
 };
-/* Utility function utilizing timeout Promise to sleep */
+/* Usage: await sleep(ms) (within an async function only) */
 function sleep(ms) {
     return new Promise(function (resolve) { return setTimeout(resolve, ms); });
 }
+/* Need async func to make sure all the promises are performed */
 function waitForShowDups() {
     return __awaiter(this, void 0, void 0, function () {
-        var progress;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    progress = ticker;
-                    return [4 /*yield*/, sleep(30000)];
-                case 1:
-                    _a.sent();
-                    _a.label = 2;
-                case 2:
-                    if (!(progress < ticker)) return [3 /*break*/, 4];
-                    return [4 /*yield*/, sleep(4 * promises.length)];
-                case 3:
-                    _a.sent();
-                    progress = ticker;
-                    return [3 /*break*/, 2];
-                case 4:
-                    // Now call the actual report function
-                    Promise.allSettled(promises).then(function (results) {
-                        showDups();
-                        if (verbose) {
-                            console.error("Ticker: " + ticker);
-                            console.error("Promises: " + promises.length);
-                            console.error("Hashes: " + hashes_performed);
-                        }
-                    });
-                    return [2 /*return*/];
-            }
+            // Call the actual report function once promises resolved
+            Promise.allSettled(promises).then(function (results) {
+                showDups();
+                if (verbose) {
+                    console.error("Promises: " + promises.length);
+                    console.error("Hashes: " + hashes_performed);
+                }
+            });
+            return [2 /*return*/];
         });
     });
 }

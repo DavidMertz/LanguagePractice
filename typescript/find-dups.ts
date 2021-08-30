@@ -32,7 +32,6 @@ interface InodeCache {
 let inodeCache: InodeCache = {};
 
 /* Callbacks and completion of each for a spin-wait */
-let ticker: number = 0;
 let hashes_performed = 0;
 let promises = [];
 
@@ -108,9 +107,9 @@ function hashFinfos(finfos: Finfo[]): Promise<number> {
 }
 
 /*---------------------------------------------------------------------
- * Recursively and asynchronously walk directory
+ * Recursively walk directory
  * 
- * Callbacks for found `file` encountered will be provided with full 
+ * Callbacks for found `fname` encountered will be provided with full 
  * paths to the relevant file/directory
  *
  * @param dir Folder name you want to recursively process
@@ -120,31 +119,24 @@ const walkdir = (
     dir: string,
     found: (finfo: Finfo) => void
 ) => { 
-    fs.readdir(dir, (err: Error, list: string[]) => {
-        if (err) { return problem(err, dir); }
-
-        list.forEach((file: string) => {
-            ticker += 1;
-            file = path.resolve(dir, file);
-            fs.lstat(file, (err2, stat) => {
-                if (err2) { 
-                    problem(err, file); }
-                else if (stat && stat.isDirectory()) {
-                    walkdir(file, found); }
-                else if (stat.isSymbolicLink()) {
-                    // Skip these
-                    //problem(null, `Skipping symlink ${file}`);
-                }
-                else if (stat.isFile()) {
-                    let finfo: Finfo = { 
-                            fname: file, 
-                            size: stat.size, 
-                            hash: null, 
-                            inode: stat.ino }
-                    found(finfo); 
-                }
-            });
-        });
+    let filenames = fs.readdirSync(dir);
+    filenames.forEach(fname => {
+        fname = path.resolve(dir, fname);
+        let stat = fs.lstatSync(fname);
+        if (stat && stat.isDirectory()) {
+            walkdir(fname, found); }
+        else if (stat.isSymbolicLink()) {
+            // Skip these
+            //problem(null, `Skipping symlink ${file}`);
+        }
+        else if (stat.isFile()) {
+            let finfo: Finfo = { 
+                    fname: fname, 
+                    size: stat.size, 
+                    hash: null, 
+                    inode: stat.ino }
+            found(finfo); 
+        }
     });
 }; 
 
@@ -156,7 +148,6 @@ const walkdir = (
  * @param finfo File information object following Finfo protocol
  ----------------------------------------------------------------------*/
 const accum_by_size = (finfo: Finfo) => {
-    ticker += 1;
     let size = finfo.size;
     // The first time we've seen this size
     if (! (size in by_size)) {
@@ -179,7 +170,6 @@ const accum_by_size = (finfo: Finfo) => {
             by_size[size].push(finfo);
 
             // Now ready to enforce actual hashes on all entries
-            ticker += 1
             promises.push(hashFinfos(by_size[size]));
         }
     }
@@ -221,26 +211,18 @@ const showDups = () => {
     }
 };
 
-/* Utility function utilizing timeout Promise to sleep */    
+
+/* Usage: await sleep(ms) (within an async function only) */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/* Need async func to make sure all the promises are performed */
 async function waitForShowDups() {
-    // Initial sleep to make sure some files have been walked
-    let progress = ticker;
-    await sleep(30000);
-    // Sleep as needed until promises all made (i.e. hashing queued)
-    // Adjust the sleep slightly crudely, but dynamically
-    while (progress < ticker) { 
-        await sleep(4*promises.length); 
-        progress = ticker;
-    }
-    // Now call the actual report function
+    // Call the actual report function once promises resolved
     Promise.allSettled(promises).then((results) => {
         showDups();
         if (verbose) {
-            console.error(`Ticker: ${ticker}`);
             console.error(`Promises: ${promises.length}`);
             console.error(`Hashes: ${hashes_performed}`);
         }
