@@ -133,16 +133,16 @@ function main()
     maxsize = args["max-size"]
     minsize = args["min-size"]
 
-	if args["verbose"]
+    if args["verbose"]
         println(stderr, "Cores => $(Threads.nthreads())")
         for (k, v) ∈ args
             println(stderr, "$(k) => $(repr(v))")
         end
-	end
+    end
 
     rootdir = args["rootdir"]
-	for (root, _, files) ∈ walkdir(rootdir, follow_symlinks=false)
-		for file ∈ files
+    for (root, _, files) ∈ walkdir(rootdir, follow_symlinks=false)
+        for file ∈ files
             path = abspath(joinpath(root, file))
             # Ignore symlinks
             if islink(path) continue end
@@ -155,8 +155,8 @@ function main()
             if size ∉ keys(by_size) by_size[size] = [] end
             # Add the current path to the by_size
             push!(by_size[size], (path, inode))
-		end
-	end
+        end
+    end
 
     summary = show_dups(by_size)
     if args["verbose"]
