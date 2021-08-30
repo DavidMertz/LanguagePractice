@@ -16,7 +16,7 @@ Checkmarks used to indicate at least a reasonable first version of specified too
 - [x] Julia
 - [x] TypeScript
 - [x] Haskell
-- [ ] Ruby
+- [x] Ruby
 - [ ] Kotlin (JVM tooling is PITA; back-burner)
 - [ ] Dart (I realize I don't care about UI; back-burner)
 - [x] Bash (baseline)
