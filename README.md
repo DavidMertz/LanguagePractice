@@ -56,30 +56,29 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit f32658f, the performance of the various versions is approximately
+As of commit 810ad3e, the performance of the various versions is approximately
 as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
 
 | Language (options)   | Sanity chk  | Wall clock time
 |----------------------|-------------|----------------
-| Golang               | dups 457742 | 17 secs
-| Rust (rust-crypto)   | dups 457742 | 19 secs
-| Rust (RustCrypto)    | dups 457742 | 20 secs
-| Ruby                 | dups 457742 | 20 secs
-| Python               | dups 457742 | 22 secs
-| Julia (-O3)          | dups 457742 | 27 secs
-| Haskell              | dups 457742 | 79 secs
-| TypeScript (js-sha1) | dups 457742 | 79 secs
-| TypeScript (Rusha)   | dups 457742 | 94 secs
+| Golang               | dups 474265 | 21 secs
+| Rust (rust-crypto)   | dups 474265 | 26 secs
+| Rust (RustCrypto)    | dups 474265 | 26 secs
+| Ruby                 | dups 474265 | 27 secs
+| Python               | dups 474265 | 27 secs
+| Julia (-O3)          | dups 474265 | 30 secs
+| Haskell              | dups 474265 | 95 secs
+| TypeScript (js-sha1) | dups 474265 | 118 secs
+| TypeScript (Rusha)   | dups 474265 | 125 secs
 
 Two optimizations have been noticed and implemented in Python, Julia, Ruby,
 Golang, Rust, and TypeScript. 
 
 * For paths of the same size that are actually hard links to the same inode,
 the file was initially hashed multiple times.  Simply borrowing the hash of
-what is, after all, the identical on-disk location, is cheaper.  This fix makes
-the Python version about 20% faster.
+what is, after all, the identical on-disk location, is cheaper.
 
 * A special case of this is where, in fact, **all** paths of a given size are
 to the same inode.  As well as taking advantage of the optimization "don't hash
