@@ -1,5 +1,5 @@
 #!/bin/bash
 
 FLAGS="-threaded +RTS -N -RTS"
-PKGS="-package cryptonite -package MissingH"
+PKGS="-package cryptonite -package MissingH -package hashtables -package byteable"
 ghc $FLAGS $PKGS find-dups.hs

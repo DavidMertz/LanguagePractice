@@ -11,16 +11,25 @@ import System.FilePath ((</>), addTrailingPathSeparator, normalise)
 import System.Path.NameManip (guess_dotdot, absolute_path)
 import System.Posix.Files (getFileStatus, fileID)
 import System.Posix.Types (CIno)
+import System.IO (hPutStrLn, stderr)    
 import Data.List (isPrefixOf)
 import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import Data.Maybe (fromJust)
 import Data.Foldable (for_)
 import Data.Typeable (typeOf)
 import qualified Data.ByteString.Char8 as Bytes
-import qualified Data.Map.Strict as Map
+import Data.ByteString (empty)
 import Control.Monad (mapM_, forM_, filterM, liftM)
+--import Control.Monad.State (get, put, runState, State, StateT)
 import Control.Monad.IO.Class (liftIO)
+--import qualified Data.HashTable.IO as H    
 import Crypto.Hash -- Implicit, cannot list SHA1 here?!
+
+-- Several mappings used by functions
+type BySize = Map Integer [Finfo]
+type ByHash = Map (Digest SHA1) [Finfo]
+--type ByInode k v = H.LinearHashTable k v
 
 -- File-info record
 data Finfo = Finfo { 
@@ -29,9 +38,6 @@ data Finfo = Finfo {
     sha1 :: Digest SHA1, -- fingerprint
     inode :: CIno        -- inode on disk 
     } deriving (Show, Eq)
-
-type BySize = Map Integer [Finfo]
-type ByHash = Map (Digest SHA1) [Finfo]
 
 -- Recipe from https://www.schoolofhaskell.com
 absolutize :: String -> IO String
@@ -60,16 +66,6 @@ groupByHash finfos =
     let bySha1 = [(sha1 finfo, finfo) | finfo <- finfos] 
     in fromListWithDuplicates bySha1
 
--- Lazily return (normal) files from rootdir
-getAllFilesNoSymFiles :: FilePath -> IO [FilePath]
-getAllFilesNoSymFiles root = do
-    nodes <- pathWalkLazy root
-    -- get file paths from each node
-    let files = [dir </> file | (dir, _, files) <- nodes,
-                                file <- files]
-    normalFiles <- filterM (liftM not . pathIsSymbolicLink) files
-    return normalFiles
-
 -- Lazily return all files from rootdir
 getAllFilesRaw :: FilePath -> IO [FilePath]
 getAllFilesRaw root = do
@@ -79,7 +75,16 @@ getAllFilesRaw root = do
                               file <- files]
   return files
 
--- This version provided on StackOverflow by ChrisB at:
+-- Lazily return (normal) files from rootdir
+getAllFilesNoSymFiles :: FilePath -> IO [FilePath]
+getAllFilesNoSymFiles root = do
+    nodes <- pathWalkLazy root
+    let files = [dir </> file | (dir, _, files) <- nodes,
+                                file <- files]
+    normalFiles <- filterM (liftM not . pathIsSymbolicLink) files
+    return normalFiles
+
+-- This version based on StackOverflow by ChrisB at:
 -- stackoverflow.com/questions/68869527/getallfiles-but-not-symlinks/
 -- Lazily return (normal) files from (normal) rootdir
 getAllFilesNoSymLinks :: FilePath -> IO [FilePath]
@@ -96,21 +101,30 @@ getAllFilesNoSymLinks path = do
                     -- if not a file, assume it to be a directory
                     dirContents <- listDirectory path
                     -- run recursively on children and accumulate results
-                    fmap concat $ mapM (getAllFiles . (path </>)) dirContents
+                    let descend = getAllFilesNoSymLinks . (path </>)
+                        in fmap concat $ mapM descend dirContents
+
+-- Cache the read and compute on the inode
+getHash :: CIno -> String -> IO (Digest SHA1)
+getHash inode abspath = do
+    content <- Bytes.readFile abspath
+    let sha1 = hashWith SHA1 content
+    --let sha1 = hashWith SHA1 empty
+    --hPutStrLn stderr $ (show inode) ++ "  " ++ abspath
+    return sha1
 
 -- The logic of processing files    
 getFinfo :: FilePath -> IO Finfo
 getFinfo path = do
-    abspath <- absolutize path
-    size <- getFileSize abspath
-    content <- Bytes.readFile abspath
     fstat <- getFileStatus path
     let inode = fileID fstat
-    let sha1 = hashWith SHA1 content
+    abspath <- absolutize path
+    size <- getFileSize abspath
+    sha1 <- getHash inode abspath        
     let finfo = Finfo abspath size sha1 inode
     return finfo
 
--- Pring report on individual BySize record (if qualifying)
+-- Print report on individual BySize record (if qualifying)
 printSizeRecord :: (Integer, [Finfo]) -> IO ()
 printSizeRecord (size, finfos)
     | size > 0 && length finfos > 1 = do
@@ -145,12 +159,4 @@ main = do
     bySize <- getBySize rootdir
     let sizeRecords = reverse $ Map.assocs bySize
     mapM_ printSizeRecord sizeRecords
-
-    -- XXX: debugging
---    files <- getAllFiles rootdir
---    putStrLn ("getAllFiles finds:     " ++ show (length files))
---    files' <- getAllFilesNoSymFiles rootdir
---    putStrLn ("getAllFilesNoSymFiles: " ++ show (length files'))
---    files'' <- getAllFilesNoSymDirs rootdir
---    putStrLn ("getAllFilesNoSymDirs:  " ++ show (length files''))
 
