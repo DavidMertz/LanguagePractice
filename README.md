@@ -56,7 +56,7 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit 810ad3e, the performance of the various versions is approximately
+As of commit 189447c, the performance of the various versions is approximately
 as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
@@ -65,16 +65,16 @@ Each language reports file count and time elapsed for CONDA_PREFIX
 |----------------------|-------------|----------------
 | Golang               | dups 474265 | 21 secs
 | Rust (rust-crypto)   | dups 474265 | 26 secs
-| Rust (RustCrypto)    | dups 474265 | 26 secs
+| Rust (RustCrypto)    | dups 474265 | 27 secs
 | Ruby                 | dups 474265 | 27 secs
-| Python               | dups 474265 | 27 secs
+| Python               | dups 474265 | 28 secs
 | Julia (-O3)          | dups 474265 | 30 secs
-| Haskell              | dups 474265 | 95 secs
-| TypeScript (js-sha1) | dups 474265 | 118 secs
-| TypeScript (Rusha)   | dups 474265 | 125 secs
+| Haskell              | dups 474265 | 41 secs
+| TypeScript (js-sha1) | dups 474265 | 111 secs
+| TypeScript (Rusha)   | dups 474265 | 126 secs
 
 Two optimizations have been noticed and implemented in Python, Julia, Ruby,
-Golang, Rust, and TypeScript. 
+Golang, Rust, TypeScript, and Haskell. 
 
 * For paths of the same size that are actually hard links to the same inode,
 the file was initially hashed multiple times.  Simply borrowing the hash of
@@ -90,11 +90,13 @@ attempt (so far) at parallelism in Ruby, its near-top place surprises me
 greatly now that several other languages have that same optimization.
 
 Haskell uses the `-threaded` option, but discovers only a little bit of
-parallelism.  However, working out the optimizations in the algorithm will
-likely make much more difference than more parallelism.
+parallelism.  Implementing the same algorithmic optimizations as in other
+languages, brings Haskell within 2x of the fastest; only TypeScript 
+remains an extreme outlier.
 
 Julia was relatively easy to parallelize, and in that case, parallelism
-brought the performance from dreadful to mediocre.
+brought the performance from dreadful to mediocre.  The algorithmic
+improvements were much more important.
 
 The Rust version now has a switch  between the unmaintained `rust-crypto`
 library which is substantially faster and the "official" `RustCrypto` one.
