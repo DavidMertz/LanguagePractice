@@ -20,22 +20,20 @@ import Data.Foldable (for_)
 import Data.Typeable (typeOf)
 import qualified Data.ByteString.Char8 as Bytes
 import Data.ByteString (empty)
-import Control.Monad (mapM_, forM_, filterM, liftM)
---import Control.Monad.State (get, put, runState, State, StateT)
+import Data.ByteString.Char8 (singleton, pack)
+import Control.Monad (mapM, mapM_, forM, forM_, filterM, liftM)
 import Control.Monad.IO.Class (liftIO)
---import qualified Data.HashTable.IO as H    
 import Crypto.Hash -- Implicit, cannot list SHA1 here?!
 
 -- Several mappings used by functions
 type BySize = Map Integer [Finfo]
 type ByHash = Map (Digest SHA1) [Finfo]
---type ByInode k v = H.LinearHashTable k v
+type ByInode = Map (CIno) [Finfo]
 
 -- File-info record
 data Finfo = Finfo { 
     fname :: String, 
     f_size :: Integer,   -- size of file
-    sha1 :: Digest SHA1, -- fingerprint
     inode :: CIno        -- inode on disk 
     } deriving (Show, Eq)
 
@@ -60,11 +58,11 @@ fromListWithFirst :: Ord k => [(k, v)] -> Map k v
 fromListWithFirst pairs = 
     Map.fromListWith (\a _ -> a) [(k, v) | (k, v) <- pairs]
 
--- Create the ByHash map on same-sized files
-groupByHash :: [Finfo] -> ByHash
-groupByHash finfos = 
-    let bySha1 = [(sha1 finfo, finfo) | finfo <- finfos] 
-    in fromListWithDuplicates bySha1
+-- Create the ByInode map on same-sized files
+groupByInode :: [Finfo] -> ByInode
+groupByInode finfos = 
+    let byInode = [(inode finfo, finfo) | finfo <- finfos] 
+    in fromListWithDuplicates byInode
 
 -- Lazily return all files from rootdir
 getAllFilesRaw :: FilePath -> IO [FilePath]
@@ -105,12 +103,10 @@ getAllFilesNoSymLinks path = do
                         in fmap concat $ mapM descend dirContents
 
 -- Cache the read and compute on the inode
-getHash :: CIno -> String -> IO (Digest SHA1)
-getHash inode abspath = do
+getHash :: String -> IO (Digest SHA1)
+getHash abspath = do
     content <- Bytes.readFile abspath
     let sha1 = hashWith SHA1 content
-    --let sha1 = hashWith SHA1 empty
-    --hPutStrLn stderr $ (show inode) ++ "  " ++ abspath
     return sha1
 
 -- The logic of processing files    
@@ -120,22 +116,55 @@ getFinfo path = do
     let inode = fileID fstat
     abspath <- absolutize path
     size <- getFileSize abspath
-    sha1 <- getHash inode abspath        
-    let finfo = Finfo abspath size sha1 inode
+    let finfo = Finfo abspath size inode
     return finfo
 
--- Print report on individual BySize record (if qualifying)
+-- Identify all patterns of multiple fnames with same hash
+getHashDups :: [((Digest SHA1), [Int])] -> [[Finfo]] -> [((Digest SHA1), [String])]
+getHashDups hashToIndices inodeFinfos = 
+    let hashToFname = [(sha1, fname finfo) | 
+                       (sha1, indices) <- hashToIndices,
+                       index <- indices,
+                       finfo <- (inodeFinfos !! index) ]
+    in filter ((> 1) . length . snd) 
+        (Map.assocs $ fromListWithDuplicates hashToFname)
+
+-- Break out report logic for multiple inodes of same size
+printSizeMultiInodes :: Integer -> ByInode ->  [Digest SHA1] -> IO ()
+printSizeMultiInodes size byInode sha1s = do
+    -- Use list of fnames by inode to allow position indexing
+    let inodeFinfos = Map.elems byInode
+    let sha1sIndices = zip sha1s [0..]
+    let hashToIndices = Map.assocs $ fromListWithDuplicates sha1sIndices
+    let hashDups = getHashDups hashToIndices inodeFinfos
+    -- hashDups may be empty, but if multiple, report fnames
+    forM_ hashDups (\(sha1, fnames) -> do
+        if length fnames > 1 then do
+            putStrLn $ "Size: " ++ show size ++ " | SHA1: " ++ show sha1
+            forM_ fnames (\fname -> do
+                putStrLn $ "  " ++ fname ) 
+        else do return () ) 
+
+-- Print report on specific file size (if any dups) 
 printSizeRecord :: (Integer, [Finfo]) -> IO ()
 printSizeRecord (size, finfos)
     | size > 0 && length finfos > 1 = do
-      let byHash = groupByHash finfos
-      for_ (Map.assocs byHash) (\(sha1, finfos) -> do
-        if (length finfos) > 1 then do
-          putStrLn $ "Size: " ++ show size ++ " | SHA1: " ++ show sha1
+      let byInode = groupByInode finfos 
+      -- There are multiple filenames of `size` but just one inode
+      if length byInode == 1 then do
+          let ino = inode $ head finfos
+          putStrLn $ "Size: " ++ show size ++ " | SHA1: <INODE " ++ show ino ++ ">"
           for_ [fname finfo | finfo <- finfos] (\fname -> do
-                putStrLn $ "  " ++ fname )
-        else do
-          return () )
+              putStrLn $ "  " ++ fname )
+      else do
+          let byInode = groupByInode finfos
+          -- `sha1s` is just a list of hashes; need to match with byInode
+          -- Each one pertains to one more filenames with same inode
+          hashes <- forM (Map.assocs byInode) (\(inode, finfos) -> do
+              return (getHash (fname $ head finfos)) )
+          sha1s <- forM hashes (\hash -> liftIO hash)
+          -- Report iff there are duplicate hashes among these
+          printSizeMultiInodes size byInode sha1s
     | otherwise = do
       return ()
 
