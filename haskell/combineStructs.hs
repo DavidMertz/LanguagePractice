@@ -1,5 +1,6 @@
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+import Util (lengthExceeds)
 
 -- Create Map from list of pairs, making dup vals into a list
 fromListWithDuplicates :: Ord k => [(k, v)] -> Map k [v]
@@ -17,20 +18,16 @@ households = [[Person "Alice", Person "Bob"],
 
 interviewers = [("Agent1", [0]), ("Agent2", [1,2]), ("Agent3", [3])]
 
-atLeastTwo :: [a] -> Bool
-atLeastTwo (_:_:_) = True
-atLeastTwo _ = False
-
 multiInterviews households interviewers =
     let assignments = [(agent, name person) | 
                        (agent, houseIndices) <- interviewers,
                        index <- houseIndices,
                        person <- (households !! index) ]
-    in filter (atLeastTwo . snd ) 
+    in filter (flip lengthExceeds 1 . snd)
         (Map.assocs $ fromListWithDuplicates assignments)
 
 main :: IO ()
 main = do
-    putStrLn $ show (multiInterviewsWRONG households interviewers)
+    putStrLn $ show (multiInterviews households interviewers)
 
 

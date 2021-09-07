@@ -23,6 +23,7 @@ import Data.ByteString (empty)
 import Data.ByteString.Char8 (singleton, pack)
 import Control.Monad (mapM, mapM_, forM, forM_, filterM, liftM)
 import Control.Monad.IO.Class (liftIO)
+import Util (lengthExceeds)
 import Crypto.Hash -- Implicit, cannot list SHA1 here?!
 
 -- Several mappings used by functions
@@ -126,7 +127,8 @@ getHashDups hashToIndices inodeFinfos =
                        (sha1, indices) <- hashToIndices,
                        index <- indices,
                        finfo <- (inodeFinfos !! index) ]
-    in filter ((> 1) . length . snd) 
+    -- Point-free is O(N) on size:  ((> 1) . length . snd) 
+    in filter (flip lengthExceeds 1 . snd)
         (Map.assocs $ fromListWithDuplicates hashToFname)
 
 -- Break out report logic for multiple inodes of same size
