@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "cmd-ts": "^0.7.0",
+    "commander": "^8.1.0",
     "fs": "^0.0.1-security",
     "js-sha1": "^0.6.0",
     "path": "^0.12.7",
@@ -7,6 +9,6 @@
     "ts-command-line-args": "^2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^16.7.1"
+    "@types/node": "^16.7.6"
   }
 }

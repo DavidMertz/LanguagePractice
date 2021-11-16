@@ -16,7 +16,7 @@ Checkmarks used to indicate at least a reasonable first version of specified too
 - [x] Julia
 - [x] TypeScript
 - [x] Haskell
-- [ ] Ruby
+- [x] Ruby
 - [ ] Kotlin (JVM tooling is PITA; back-burner)
 - [ ] Dart (I realize I don't care about UI; back-burner)
 - [x] Bash (baseline)
@@ -56,29 +56,29 @@ unspecified order within their section.
 
 ### Notes on performance
 
-As of commit fdd873f, the performance of the various versions is approximately
+As of commit 189447c, the performance of the various versions is approximately
 as shown:
 
 Each language reports file count and time elapsed for CONDA_PREFIX
 
-| Language (options) | Sanity chk  | Wall clock time
-|--------------------|-------------|----------------
-| Golang             | dups 457742 | 16 secs
-| Ruby               | dups 457742 | 20 secs
-| Python             | dups 457742 | 21 secs
-| Julia              | dups 457742 | 25 secs
-| Rust (rust-crypto) | dups 457742 | 19 secs
-| Rust (RustCrypto)  | dups 457742 | 20 secs
-| Haskell            | dups 457742 | 77 secs
-| TypeScript ->.js   | dups 457742 | 388 secs
+| Language (options)   | Sanity chk  | Wall clock time
+|----------------------|-------------|----------------
+| Golang               | dups 474265 | 21 secs
+| Rust (rust-crypto)   | dups 474265 | 26 secs
+| Rust (RustCrypto)    | dups 474265 | 27 secs
+| Ruby                 | dups 474265 | 27 secs
+| Python               | dups 474265 | 28 secs
+| Julia (-O3)          | dups 474265 | 30 secs
+| Haskell              | dups 474265 | 41 secs
+| TypeScript (js-sha1) | dups 474265 | 111 secs
+| TypeScript (Rusha)   | dups 474265 | 126 secs
 
 Two optimizations have been noticed and implemented in Python, Julia, Ruby,
-Golang, and Rust. 
+Golang, Rust, TypeScript, and Haskell. 
 
 * For paths of the same size that are actually hard links to the same inode,
 the file was initially hashed multiple times.  Simply borrowing the hash of
-what is, after all, the identical on-disk location, is cheaper.  This fix makes
-the Python version about 20% faster.
+what is, after all, the identical on-disk location, is cheaper.
 
 * A special case of this is where, in fact, **all** paths of a given size are
 to the same inode.  As well as taking advantage of the optimization "don't hash
@@ -90,21 +90,29 @@ attempt (so far) at parallelism in Ruby, its near-top place surprises me
 greatly now that several other languages have that same optimization.
 
 Haskell uses the `-threaded` option, but discovers only a little bit of
-parallelism.  However, working out the optimizations in the algorithm will
-likely make much more difference than more parallelism.
+parallelism.  Implementing the same algorithmic optimizations as in other
+languages, brings Haskell within 2x of the fastest; only TypeScript 
+remains an extreme outlier.
 
-Julia was relatively easy to parallelize, and in that case, only parallism
-brough the performance from dreadful to mediocre.
+Julia was relatively easy to parallelize, and in that case, parallelism
+brought the performance from dreadful to mediocre.  The algorithmic
+improvements were much more important.
 
 The Rust version now has a switch  between the unmaintained `rust-crypto`
 library which is substantially faster and the "official" `RustCrypto` one.
 Also, the optimization level in Rust turns out to make A LOT of difference.
 
-Even the Node.js JIT interpreter (TypeScript) manages to find a lot of
-parallism for asynchronous callbacks.  The problem there is that the
-underlying SHA1 implementation in JavaScript is about 11x slower than the
-best ones, even with the JIT making a relatively noble attempt (see
-`benchmark-justsha` and the corresponding implementations of `sha1sum`).
+The Node.js JIT interpreter (TypeScript) manages to find a lot of parallism for
+Promises. However, I simply could not coordinate the asynchronous
+`fs.readdir()` for the range of tree sizes.  I had initially used hand-tuned
+delays to do "enough" tree-walking before doing the parallel hashing
+(otherwise, the script would end prematurely when nothing was "queued" in
+Promises; but that was sensitive to the exact root directory.  The main problem
+in the TypeScript implementation is that the underlying SHA1 implementation in
+JavaScript is about 11x slower than the best ones, even with the JIT making a
+relatively noble attempt (see `benchmark-justsha` and the corresponding
+implementations of `sha1sum`). Analogous to Rust, one library that is faster
+for a single operation is slower when parallelized.
 
 ### Notes on validation
 

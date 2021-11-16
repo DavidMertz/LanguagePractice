@@ -71,7 +71,7 @@ const hashAll = (finfos: Finfo[]) => {
 }
 
 /*---------------------------------------------------------------------
- * Recursively and asynchronously walk directory
+ * Recursively walk directory
  * 
  * Callbacks for found `file` encountered will be provided with full 
  * paths to the relevant file/directory
@@ -150,9 +150,7 @@ const accum_by_size = (
  *
  * @param by_size Mapping of sizes to array of Finfo objects
  ----------------------------------------------------------------------*/
-const show_dups = (
-    by_size: SizeGroups
-) => {
+const showDups = () => {
     // Loop through all the file sizes in reverse order
     for (let size of Object.keys(by_size).reverse()) {
         let finfos: Finfo[] = by_size[size];
@@ -183,7 +181,8 @@ const show_dups = (
     }
 };
 
-/* Utility function utilizing timeout Promise to sleep */    
+
+/* Usage: await sleep(ms) (within an async function only) */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -202,6 +201,46 @@ async function ShowDups(by_size: SizeGroups) {
 /*---------------------------------------------------------------------
  * The "main()" steps of the script
  ----------------------------------------------------------------------*/
+const cmd = command({
+    name: "find-dups",
+    description: 'Find files with identical contents',
+    version: '0.2',
+    args: {
+        rootdir: positional({
+            type: string, 
+            displayName: "rootdir"
+        }),
+        jsSha1: flag({
+            long: "use-js-sha1",
+            short: "j",
+            type: boolean 
+        }),
+        rusha: flag({
+            long: "use-rusha-sha",
+            short: "r",
+            type: boolean 
+        }),
+        verbose: flag({
+            long: "verbose",
+            short: "v",
+            type: boolean 
+        })
+    },
+    handler: args => {
+        if (args.jsSha1) { shaLib = "js-sha1"; }
+        if (args.rusha)  { shaLib = "rusha"; }
+        verbose = args.verbose;
+        if (verbose) {
+            console.error(`SHA1-lib: ${shaLib}`);
+            for (let key of Object.keys(args)) {
+                console.error(`${key}: ${args[key]}`);
+            }
+        }
+        walkdir(args.rootdir, accum_by_size);
+        waitForShowDups();
+   },
+});
+run(cmd, process.argv.slice(2));
 
 let dir: string = process.argv[2];
 walkdir(dir, accum_by_size);
