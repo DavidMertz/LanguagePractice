@@ -45,113 +45,81 @@ var cmd_ts_1 = require("cmd-ts");
 var by_size = {};
 var inodeCache = {};
 /* Callbacks and completion of each for a spin-wait */
+var todo = 0;
+var done = 0;
 var hashes_performed = 0;
-var promises = [];
-/* Handle conditional flags with globals (probably not best apprach) */
-var shaLib = "js-sha1";
 var problem = console.error;
-var verbose = false;
 /* Put hashing in a function to cache and choose library */
-function getDigest(data) {
-    var offset = 0;
-    var chunksize = 100000;
-    if (shaLib == "rusha") {
-        // rusha
-        var hash = Rusha.createHash();
-        while (true) {
-            var segment = data.slice(offset, offset + chunksize);
-            hash.update(segment);
-            offset += chunksize;
-            if (segment.length < chunksize) {
-                break;
-            }
-        }
-        var digest = hash.digest('hex');
-    }
-    else if (shaLib == "js-sha1") {
-        // js-sha1
-        var hash = sha1.create();
-        while (true) {
-            var segment = data.slice(offset, offset + chunksize);
-            hash.update(segment);
-            offset += chunksize;
-            if (segment.length < chunksize) {
-                break;
-            }
-        }
-        var digest = hash.hex();
-    }
-    else {
-        // the fallback?
-        var digest = "NO SHA1 PERFORMED";
-    }
-    hashes_performed += 1;
+var getDigest = function (finfo) {
+    var data = fs.readFileSync(finfo.fname);
+    // js-sha1
+    var hash = sha1.create();
+    hash.update(data);
+    var digest = hash.hex();
+    finfo.hash = digest;
     return digest;
-}
-/* Add hashes to all same-size finfos in an array (caching saves work) */
-function hashFinfos(finfos) {
-    return new Promise(function (resolve, reject) {
-        var updatedFinfos = [];
-        var size = finfos[0].size;
-        for (var _i = 0, finfos_1 = finfos; _i < finfos_1.length; _i++) {
-            var finfo = finfos_1[_i];
-            // The cheap case is using a cached inode
-            if (finfo.inode in inodeCache) {
-                finfo.hash = inodeCache[finfo.inode];
-                updatedFinfos.push(finfo);
-            }
-            // More work is actually performing a hash
-            else {
-                var data = fs.readFileSync(finfo.fname);
-                var digestPromise = getDigest(data);
-                promises.push(digestPromise);
-                finfo.hash = digestPromise;
-                inodeCache[finfo.inode] = finfo.hash;
-                updatedFinfos.push(finfo);
-            }
-            ;
-        }
-        ;
-        by_size[size] = updatedFinfos;
-        if (true) {
-            resolve(updatedFinfos.length);
+    // rusha
+    // const hash = Rusha.createHash().update(data);
+    // return hash.digest('hex')
+};
+/* Function to hash an array of Finfo objects */
+var hashAll = function (finfos) {
+    var hashCache = {};
+    for (var _i = 0, finfos_1 = finfos; _i < finfos_1.length; _i++) {
+        var finfo = finfos_1[_i];
+        if (finfo.inode in hashCache) {
+            finfo.hash = hashCache[finfo.inode];
         }
         else {
-            // In concept this is where we could fail promise
-            reject(666);
+            getDigest(finfo);
+            by_size[finfo.size].push(finfo);
+            hashCache[finfo.inode] = finfo.hash;
+            done += 1;
+            hashes_performed += 1;
         }
-    });
-}
+        ;
+    }
+    ;
+};
 /*---------------------------------------------------------------------
  * Recursively walk directory
  *
- * Callbacks for found `fname` encountered will be provided with full
+ * Callbacks for found `file` encountered will be provided with full
  * paths to the relevant file/directory
  *
  * @param dir Folder name you want to recursively process
  * @param found Callback function, returns all files with full path.
  ----------------------------------------------------------------------*/
 var walkdir = function (dir, found) {
-    var filenames = fs.readdirSync(dir);
-    filenames.forEach(function (fname) {
-        fname = path.resolve(dir, fname);
-        var stat = fs.lstatSync(fname);
-        if (stat && stat.isDirectory()) {
-            walkdir(fname, found);
+    fs.readdir(dir, function (err, list) {
+        if (err) {
+            return problem(err, dir);
         }
-        else if (stat.isSymbolicLink()) {
-            // Skip these
-            //problem(null, `Skipping symlink ${file}`);
-        }
-        else if (stat.isFile()) {
-            var finfo = {
-                fname: fname,
-                size: stat.size,
-                hash: null,
-                inode: stat.ino
-            };
-            found(finfo);
-        }
+        list.forEach(function (file) {
+            file = path.resolve(dir, file);
+            fs.lstat(file, function (err2, stat) {
+                if (err2) {
+                    problem(err, file);
+                }
+                else if (stat && stat.isDirectory()) {
+                    walkdir(file, found);
+                }
+                else if (stat.isSymbolicLink()) {
+                    // Skip these
+                    problem(null, "Skipping symlink " + file);
+                }
+                else if (stat.isFile()) {
+                    var finfo = {
+                        fname: file,
+                        size: stat.size,
+                        hash: null,
+                        inode: stat.ino
+                    };
+                    todo += 1;
+                    found(finfo);
+                }
+            });
+        });
     });
 };
 /*---------------------------------------------------------------------
@@ -165,27 +133,26 @@ var accum_by_size = function (finfo) {
     var size = finfo.size;
     // The first time we've seen this size
     if (!(size in by_size)) {
-        // Add a "pseudo-hash" which may suffice
         finfo.hash = "<INODE " + finfo.inode + ">";
         by_size[size] = [finfo];
     }
-    // This is a later time seeing this size 
-    // May or may not need to hash prior entries
+    // Subsequent files of the same size...
+    // (Maybe) need to go back and add hash to first entry too
     else {
-        var old_finfo = by_size[size][0];
-        // No new inode, we can just borrow the pseudo-hash
-        if (finfo.inode == old_finfo.inode) {
-            finfo.hash = old_finfo.hash;
-            by_size[size].push(finfo);
+        var thisSize = by_size[size];
+        var first_finfo = thisSize[0];
+        // Trick is whether we actually have multiple inodes already
+        // If not, we can just keep adding the pseudo-hash
+        if (first_finfo.inode == finfo.inode &&
+            first_finfo.hash.startsWith("<INODE")) {
+            finfo.hash = first_finfo.hash;
         }
-        // There multiple inodes involved, need to do actual hashing
         else {
-            // Add the new finfo first
-            by_size[size].push(finfo);
-            // Now ready to enforce actual hashes on all entries
-            promises.push(hashFinfos(by_size[size]));
+            hashAll(by_size[size]);
         }
+        ;
     }
+    done += 1;
 };
 /*---------------------------------------------------------------------
  * Display report of files having identical content
@@ -235,63 +202,31 @@ function sleep(ms) {
 function waitForShowDups() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            // Call the actual report function once promises resolved
-            Promise.allSettled(promises).then(function (results) {
-                showDups();
-                if (verbose) {
-                    console.error("Promises: " + promises.length);
-                    console.error("Hashes: " + hashes_performed);
-                }
-            });
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0: 
+                // Initial sleep to make sure some files are in TODO
+                return [4 /*yield*/, sleep(100)];
+                case 1:
+                    // Initial sleep to make sure some files are in TODO
+                    _a.sent();
+                    _a.label = 2;
+                case 2:
+                    if (!(todo != done)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, sleep(10)];
+                case 3:
+                    _a.sent();
+                    return [3 /*break*/, 2];
+                case 4:
+                    // Now call the actual report function
+                    show_dups(by_size);
+                    return [2 /*return*/];
+            }
         });
     });
 }
 /*---------------------------------------------------------------------
  * The "main()" steps of the script
  ----------------------------------------------------------------------*/
-var cmd = cmd_ts_1.command({
-    name: "find-dups",
-    description: 'Find files with identical contents',
-    version: '0.2',
-    args: {
-        rootdir: cmd_ts_1.positional({
-            type: cmd_ts_1.string,
-            displayName: "rootdir"
-        }),
-        jsSha1: cmd_ts_1.flag({
-            long: "use-js-sha1",
-            short: "j",
-            type: cmd_ts_1.boolean
-        }),
-        rusha: cmd_ts_1.flag({
-            long: "use-rusha-sha",
-            short: "r",
-            type: cmd_ts_1.boolean
-        }),
-        verbose: cmd_ts_1.flag({
-            long: "verbose",
-            short: "v",
-            type: cmd_ts_1.boolean
-        })
-    },
-    handler: function (args) {
-        if (args.jsSha1) {
-            shaLib = "js-sha1";
-        }
-        if (args.rusha) {
-            shaLib = "rusha";
-        }
-        verbose = args.verbose;
-        if (verbose) {
-            console.error("SHA1-lib: " + shaLib);
-            for (var _i = 0, _a = Object.keys(args); _i < _a.length; _i++) {
-                var key = _a[_i];
-                console.error(key + ": " + args[key]);
-            }
-        }
-        walkdir(args.rootdir, accum_by_size);
-        waitForShowDups();
-    }
-});
-cmd_ts_1.run(cmd, process.argv.slice(2));
+var dir = process.argv[2];
+walkdir(dir, accum_by_size);
+ShowDups(by_size);

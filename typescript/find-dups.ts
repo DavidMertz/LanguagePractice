@@ -3,8 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sha1 from 'js-sha1';
 import * as Rusha from 'rusha';
-import { command, run, string, number, boolean, 
-         positional, option, flag } from 'cmd-ts';
 
 /* Interface to store relevant info about a file */
 interface Finfo {
@@ -25,91 +23,57 @@ interface HashGroup {
     [sha1: string]: Finfo[];
 }
 
-/* A global cache of inodes to hashes */
-interface InodeCache {
+/* Define mapping of inode to hash digest */
+interface InodeHash {
     [inode: number]: string;
 }
-let inodeCache: InodeCache = {};
 
 /* Callbacks and completion of each for a spin-wait */
-let hashes_performed = 0;
-let promises = [];
+let todo: number = 0;
+let done: number = 0;
+let hashes_performed: number = 0;
 
-/* Handle conditional flags with globals (probably not best apprach) */
-let shaLib = "js-sha1";
-let problem = console.error;
-let verbose = false;
+/* Specify the error handler/loggers */
+interface Problem {
+    (err: Error, msg: string): void;
+}
+let problem: Problem = console.error;
 
 /* Put hashing in a function to cache and choose library */
-function getDigest(data: Buffer): string {
-    let offset = 0;
-    let chunksize = 100000;
-    if (shaLib == "rusha") {
-        // rusha
-        let hash = Rusha.createHash()
-        while (true) {
-            let segment = data.slice(offset, offset+chunksize);
-            hash.update(segment);
-            offset += chunksize;
-            if (segment.length < chunksize) { break }
-        }
-        var digest = hash.digest('hex');
-    }
-    else if (shaLib == "js-sha1") {
-        // js-sha1
-        let hash = sha1.create();
-        while (true) {
-            let segment = data.slice(offset, offset+chunksize);
-            hash.update(segment);
-            offset += chunksize;
-            if (segment.length < chunksize) { break }
-        }
-        var digest = hash.hex();
-    }
-    else {
-        // the fallback?
-        var digest = "NO SHA1 PERFORMED";
-    }
-    hashes_performed += 1;
+const getDigest = (finfo: Finfo) => {
+    let data = fs.readFileSync(finfo.fname);
+    // js-sha1
+    let hash = sha1.create();
+    hash.update(data);
+    let digest = hash.hex();
+    finfo.hash = digest;
     return digest
-}
+    // rusha
+    // const hash = Rusha.createHash().update(data);
+    // return hash.digest('hex')
+};
 
-/* Add hashes to all same-size finfos in an array (caching saves work) */
-function hashFinfos(finfos: Finfo[]): Promise<number> {
-    return new Promise((resolve, reject) => {
-        let updatedFinfos = [];
-        let size = finfos[0].size;
-        for (var finfo of finfos) {
-            // The cheap case is using a cached inode
-            if (finfo.inode in inodeCache) {
-                finfo.hash = inodeCache[finfo.inode];
-                updatedFinfos.push(finfo);
-            }
-            // More work is actually performing a hash
-            else {
-                let data = fs.readFileSync(finfo.fname);
-                let digestPromise = getDigest(data)
-                promises.push(digestPromise);
-                finfo.hash = digestPromise;
-                inodeCache[finfo.inode] = finfo.hash;
-                updatedFinfos.push(finfo);
-            };
-        };
-        by_size[size] = updatedFinfos;
-        if (true) {
-            resolve(updatedFinfos.length);
+/* Function to hash an array of Finfo objects */
+const hashAll = (finfos: Finfo[]) => {
+    let hashCache: InodeHash = {};
+    for (let finfo of finfos) {
+        if (finfo.inode in hashCache) {
+            finfo.hash = hashCache[finfo.inode];
         }
         else {
-            // In concept this is where we could fail promise
-            reject(666);
-        }
-    });
+            getDigest(finfo);
+            by_size[finfo.size].push(finfo);
+            hashCache[finfo.inode] = finfo.hash;
+            done += 1;
+            hashes_performed += 1;
+        };
+    };
 }
 
 /*---------------------------------------------------------------------
  * Recursively walk directory
  * 
- * Callbacks for found `fname` encountered will be provided with full 
+ * Callbacks for found `file` encountered will be provided with full 
  * paths to the relevant file/directory
  *
  * @param dir Folder name you want to recursively process
@@ -119,24 +83,31 @@ const walkdir = (
     dir: string,
     found: (finfo: Finfo) => void
 ) => { 
-    let filenames = fs.readdirSync(dir);
-    filenames.forEach(fname => {
-        fname = path.resolve(dir, fname);
-        let stat = fs.lstatSync(fname);
-        if (stat && stat.isDirectory()) {
-            walkdir(fname, found); }
-        else if (stat.isSymbolicLink()) {
-            // Skip these
-            //problem(null, `Skipping symlink ${file}`);
-        }
-        else if (stat.isFile()) {
-            let finfo: Finfo = { 
-                    fname: fname, 
-                    size: stat.size, 
-                    hash: null, 
-                    inode: stat.ino }
-            found(finfo); 
-        }
+    fs.readdir(dir, (err: Error, list: string[]) => {
+        if (err) { return problem(err, dir); }
+
+        list.forEach((file: string) => {
+            file = path.resolve(dir, file);
+            fs.lstat(file, (err2, stat) => {
+                if (err2) { 
+                    problem(err, file); }
+                else if (stat && stat.isDirectory()) {
+                    walkdir(file, found); }
+                else if (stat.isSymbolicLink()) {
+                    // Skip these
+                    problem(null, `Skipping symlink ${file}`);
+                }
+                else if (stat.isFile()) {
+                    let finfo: Finfo = { 
+                            fname: file, 
+                            size: stat.size, 
+                            hash: null, 
+                            inode: stat.ino }
+                    todo += 1;
+                    found(finfo); 
+                }
+            });
+        });
     });
 }; 
 
@@ -147,32 +118,31 @@ const walkdir = (
  *
  * @param finfo File information object following Finfo protocol
  ----------------------------------------------------------------------*/
-const accum_by_size = (finfo: Finfo) => {
+const accum_by_size = (
+    finfo: Finfo,
+) => {
     let size = finfo.size;
     // The first time we've seen this size
     if (! (size in by_size)) {
-        // Add a "pseudo-hash" which may suffice
         finfo.hash = `<INODE ${finfo.inode}>`;
         by_size[size] = [finfo];
     }
-    // This is a later time seeing this size 
-    // May or may not need to hash prior entries
+    // Subsequent files of the same size...
+    // (Maybe) need to go back and add hash to first entry too
     else {
-        let old_finfo = by_size[size][0];
-        // No new inode, we can just borrow the pseudo-hash
-        if (finfo.inode == old_finfo.inode) {
-            finfo.hash = old_finfo.hash;
-            by_size[size].push(finfo);
+        let thisSize = by_size[size];
+        let first_finfo = thisSize[0];
+        // Trick is whether we actually have multiple inodes already
+        // If not, we can just keep adding the pseudo-hash
+        if (first_finfo.inode==finfo.inode &&
+            first_finfo.hash.startsWith("<INODE")) {
+            finfo.hash = first_finfo.hash;
         }
-        // There multiple inodes involved, need to do actual hashing
-        else {
-            // Add the new finfo first
-            by_size[size].push(finfo);
-
-            // Now ready to enforce actual hashes on all entries
-            promises.push(hashFinfos(by_size[size]));
-        }
+        else { 
+            hashAll(by_size[size]); 
+        };
     }
+    done += 1;
 };
 
 /*---------------------------------------------------------------------
@@ -217,16 +187,15 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/* Need async func to make sure all the promises are performed */
-async function waitForShowDups() {
-    // Call the actual report function once promises resolved
-    Promise.allSettled(promises).then((results) => {
-        showDups();
-        if (verbose) {
-            console.error(`Promises: ${promises.length}`);
-            console.error(`Hashes: ${hashes_performed}`);
-        }
-    });
+async function ShowDups(by_size: SizeGroups) {
+    // Initial sleep to make sure some files are in TODO
+    await sleep(100);
+    // Sleep as needed for accum_by_size to catch up to walkdir
+    while (todo != done) { 
+        await sleep(10); 
+    }
+    // Now call the actual report function
+    show_dups(by_size);
 }
 
 /*---------------------------------------------------------------------
@@ -273,3 +242,6 @@ const cmd = command({
 });
 run(cmd, process.argv.slice(2));
 
+let dir: string = process.argv[2];
+walkdir(dir, accum_by_size);
+ShowDups(by_size);

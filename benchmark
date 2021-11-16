@@ -90,6 +90,7 @@ echo " | dups $dups | $secs"
 # Far too slow to run very much
 #echo -n "| Bash                "
 #start=$(date +%s)
+
 #bash/find-dups $CP >find-dups.bash
 #end=$(date +%s)
 #dups=$(grep '^  ' find-dups.bash | wc -l)
