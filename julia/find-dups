@@ -1,0 +1,170 @@
+#!/usr/bin/env julia
+"""
+Given a root directory, recurse in it and find all the duplicate
+files, files that have the same contents, but not necessarily the
+same filename.
+"""
+
+# This code is released as CC-0
+# http://creativecommons.org/publicdomain/zero/1.0/
+#
+# The person who associated a work with this deed has dedicated the work to
+# the public domain by waiving all of his or her rights to the work
+# worldwide under copyright law, including all related and neighboring
+# rights, to the extent allowed by law.
+#
+# You can copy, modify, distribute and perform the work, even for
+# commercial purposes, all without asking permission. See Other Information
+# below.
+
+using ArgParse
+using SHA
+using Mmap
+
+"Implement the standard command-line switches required by find-dups spec"
+function parse_commandline()
+    s = ArgParseSettings()
+    @add_arg_table! s begin
+        "--max-size", "-M"
+            default = 10_000_000_000
+            arg_type = Int
+            help = "Ignore files larger than max-size"
+        "--min-size", "-m"
+            default = 1
+            arg_type = Int
+            help = "Ignore files smaller than min-size"
+        "--verbose", "-v"
+            action = :store_true
+            help = "Display progress information on STDERR"
+        "rootdir"
+            required = true
+            help = "Root directory to recurse for comparison of contents"
+    end
+    parse_args(s)
+end
+
+
+"Iterate dict of files grouped by size and find duplicate contents"
+function show_dups(by_size)
+    lookups_by_inode = 0
+    hashes_performed = 0
+    sizes = sort(collect(keys(by_size)), rev=true)
+
+    for size ∈ sizes
+        finfos = by_size[size]
+        # If not a duplicate, continue
+        if length(finfos) < 2 continue end
+      
+        # Within this size, create hash digests in parallel
+        digests = Dict{String, String}()
+
+        # Are all paths of this size the same inode?
+        inodes = Set(finfo[2] for finfo in finfos)
+        if length(inodes) == 1
+            lookups_by_inode += length(finfos)
+            inode = finfos[1][2]
+            println("Size: $(size) | SHA1: <INODE $(inode)>")
+            for (path, inode) ∈ finfos
+                println("  $(path)")
+            end
+            continue
+        end
+       
+        # Do we have duplicate inodes?
+        inodes = Dict{Int64, Array{String}}()
+        for (path, inode) ∈ finfos
+            if inode ∉ keys(inodes) inodes[inode] = [] end
+            push!(inodes[inode], path)
+        end
+
+        # NOTE: Hacky attempt to work around Julia glitch
+        # Looping over the dictionary itself gets weird error of
+        # MethodError: no method matching firstindex(::Base.KeySet{...
+        # The macro seems to only handle looping over arrays.
+        # Non-threaded `for (inode, paths) ∈ inodes` works fine.
+        inodes_arr = [(k, v) for (k, v) = inodes]
+        hash_lock = Threads.SpinLock()
+
+        # NOTE: The lock REALLY matters! Dictionary insertion is not 
+        # thread-safe (not sure if dictionary access is in Julia), but
+        # the hack to use list of tuples avoids the question
+        Threads.@threads for (inode, paths) ∈ inodes_arr
+            path = paths[1]
+            content = UInt8[]
+            open(path, "r") do fh
+                readbytes!(fh, content, Inf)
+            end
+            digest = bytes2hex(sha1(content))
+            lock(hash_lock) do
+                digests[path] = digest
+                hashes_performed += 1
+                for other_path ∈ paths[2:end]
+                    digests[other_path] = digest
+                    lookups_by_inode += 1
+                end
+            end
+        end
+
+        # Condense the hashes into by_hash dictionary
+        by_hash = Dict{String, Array{String}}()
+        for (path, digest) ∈ digests
+            if digest ∉ keys(by_hash) by_hash[digest] = [] end
+            push!(by_hash[digest], path)
+        end
+
+        # Produce the report for this file size (if any)
+        for (digest, finfos) ∈ by_hash
+            if length(finfos) < 2 continue end
+            println("Size: $(size) | SHA1: $(digest)")
+            for (path, inode) ∈ finfos
+                println("  $(path)")
+            end
+        end
+    end
+    # Return any information we might want in verbose channel
+    return Dict("lookups by inode" => lookups_by_inode,
+                "hashes performed" => hashes_performed)
+end
+
+"Generate mapping of common size to filenames, then call show_dups()"
+function main()
+    by_size = Dict{Int, Array{Tuple{String, Int64}}}()
+    args = parse_commandline()
+    maxsize = args["max-size"]
+    minsize = args["min-size"]
+
+    if args["verbose"]
+        println(stderr, "Cores => $(Threads.nthreads())")
+        for (k, v) ∈ args
+            println(stderr, "$(k) => $(repr(v))")
+        end
+    end
+
+    rootdir = args["rootdir"]
+    for (root, _, files) ∈ walkdir(rootdir, follow_symlinks=false)
+        for file ∈ files
+            path = abspath(joinpath(root, file))
+            # Ignore symlinks
+            if islink(path) continue end
+            # Ignore if outside size bounds
+            size = stat(path).size
+            if (size > maxsize) || (size < minsize) continue end
+            # Store the inode as well
+            inode = stat(path).inode
+            # Put empty array in by_size if size not present
+            if size ∉ keys(by_size) by_size[size] = [] end
+            # Add the current path to the by_size
+            push!(by_size[size], (path, inode))
+        end
+    end
+
+    summary = show_dups(by_size)
+    if args["verbose"]
+        for (k, v) ∈ summary
+            println(stderr, "$(k) => $(repr(v))")
+        end
+   end
+end
+
+main()
+

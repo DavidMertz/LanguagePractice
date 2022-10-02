@@ -1,0 +1,93 @@
+#!/usr/bin/env julia
+
+#= Usage examples:
+$ cat schedule
+| Course title                      | Time (EST) | Date     
+|-----------------------------------|------------|----------|
+| Intermediate ML with scikit-learn | 10:00 AM   |2018-12-17|
+| Beginning ML with scikit-learn    | 10:00 AM   |2019-02-04|
+| Intermediate ML with scikit-learn |  9:00 AM   |2019-02-11|
+
+$ dtcvt -d'|' -o'U d, yyyy' < schedule
+| Course title                      | Time (EST) | Date     |
+|-----------------------------------|------------|----------|
+| Intermediate ML with scikit-learn | 10:00 AM   | December 17, 2018 |
+| Beginning ML with scikit-learn    | 10:00 AM   | February 4, 2019 |
+| Intermediate ML with scikit-learn |  9:00 AM   | February 11, 2019 |
+
+$ dtcvt -d'|' -o'mm/dd/yy' < schedule
+| Course title                      | Time (EST) | Date     |
+|-----------------------------------|------------|----------|
+| Intermediate ML with scikit-learn | 10:00 AM   | 12/17/18 |
+| Beginning ML with scikit-learn    | 10:00 AM   | 02/04/19 |
+| Intermediate ML with scikit-learn |  9:00 AM   | 02/11/19 |
+=#
+
+using ArgParse
+using Dates
+
+function parse_commandline()
+    s = ArgParseSettings()
+    @add_arg_table! s begin
+        "--delim", "-d"
+            help = "Specify the delimiter to divide lines"
+            arg_type = String
+            default = " "
+        "--input", "-i"
+            help = "Input date format (format string or shortcut)"
+            arg_type = String
+            default = "y-m-d"
+        "--output", "-o"
+            help = "Output date format (format string or shortcut)"
+            arg_type = String
+            default = "yyyy-mm-dd"
+        "--nopad", "-p"
+            help = "Do not pad converted dates with spaces at ends"
+            action = :store_true
+    end
+
+    return parse_args(s)
+end
+
+args = parse_commandline()
+df_in = DateFormat(args["input"])
+df_out = DateFormat(args["output"])
+
+
+dateformat(s, fmt) = try
+   stripped = strip(s)
+   Date(stripped, fmt)
+catch
+   s
+end
+
+
+for line ∈ eachline()
+    # There is probably a better way: we skip empty strings,
+    # so if line begins with delimiter we lose it on "join"   
+    if startswith(line, args["delim"])
+        print(args["delim"])
+    end
+    words = split(line, args["delim"])
+    for word ∈ words
+        if length(word) == 0
+            continue
+        end
+        new = dateformat(word, df_in)
+        if new != word
+            if Dates.year(new) < 100
+                # Assume fixing two digit year to 20--
+                new += Dates.Year(2000)
+            end
+            if args["nopad"]
+                print(Dates.format(new, df_out))
+            else
+                print(" $(Dates.format(new, df_out)) ")
+            end
+        else
+            print(word)
+        end
+        print(args["delim"])
+    end
+    println()
+end

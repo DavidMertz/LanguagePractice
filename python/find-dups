@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-""" 
-Given a root directory, recurse in it and find all the duplicate 
-files, files that have the same contents, but not necessarily the 
+"""
+Given a root directory, recurse in it and find all the duplicate
+files, files that have the same contents, but not necessarily the
 same filename.
 """
 
@@ -19,175 +19,182 @@ same filename.
 # commercial purposes, all without asking permission. See Other Information
 # below.
 
-from sys import maxsize, stderr, stdout
-from os import remove, walk, readlink
-from os.path import islink
+from sys import maxsize, stderr
+from os import readlink, cpu_count, scandir
+from os.path import islink, abspath
 from fnmatch import fnmatch
-from os.path import isdir, exists, join, isfile, getsize
+from os.path import isdir
 from hashlib import sha1
 from itertools import groupby
-import sqlite3
+from collections import namedtuple
+from operator import itemgetter
+from multiprocessing import Pool
+from pprint import pprint
 
+# Keep together associated file information
+Finfo = namedtuple("Finfo", ["size", "path", "inode"])
+SIZE, PATH, INODE = range(3)
+
+# Keep stats on hashes performed and avoided
+hashes_calculated, hashes_skipped = 0, 0
+
+# I name my debug-print as XXX
+def XXX(*args, **kws):
+    pprint(*args, **kws, file=stderr)
 
 def main():
     import optparse
     parser = optparse.OptionParser(__doc__.strip())
-    parser.add_option('--size-only', type="int", default=maxsize, 
-                      help="(Debugging) consider files a match on size "
-                           "alone if they are larger than SIZE_ONLY")
-    parser.add_option('--use-checkpoint', action="store_true", 
-                      default=False,
-                      help="Begin with stored intermediate results "
-                           "(perhaps out of date)")
     parser.add_option('-M', '--max-size', type="int", default=maxsize,
                       help="Ignore files larger than MAX_SIZE")
-    parser.add_option('-m', '--min-size', type="int", default=0,
+    parser.add_option('-m', '--min-size', type="int", default=1,
                       help="Ignore files smaller than MIN_SIZE")
-    parser.add_option('-i', '--ignore-symlinks', action="store_true",
+    parser.add_option('-l', '--enable-symlinks', action="store_true",
                        default=False,
-                       help="Do not treat symbolic links as duplicates")
+                       help="Include symlinks in duplication report")
     parser.add_option('-g', '--glob', type="str", default="*",
                       help="Limit matches to glob pattern")
-    parser.add_option('-v', '--verbose', action="store_true", 
+    parser.add_option('-v', '--verbose', action="store_true",
                       default=False,
                       help="Display progress information on STDERR")
     opts, args = parser.parse_args()
     if not args:
         parser.error("You must specify directories to search.")
+
     find_duplicates(args, opts)
 
 
-def find_files(args, pat='*'):
-    for ddir in args:
-        if isdir(ddir):
-            for root, dirs, fnames in walk(ddir):
-                for f in fnames:
-                    if fnmatch(f, pat):
-                        yield join(root, f)
-        else:
-            yield ddir
+def scan_files(args, opts):
+    for dir in args:
+        if isdir(dir):
+            for entry in scandir(dir):
+                if entry.is_dir(follow_symlinks=opts.enable_symlinks):
+                    yield from scan_files([entry.path], opts)
+                elif entry.is_file(follow_symlinks=opts.enable_symlinks):
+                    if fnmatch(entry.name, opts.glob):
+                        try:
+                            path = entry.path
+                            size = entry.stat().st_size
+                            inode = entry.inode()
+                            yield Finfo(path, size, inode)
+                        except FileNotFoundError as err:
+                            if opts.verbose:
+                                print(err, file=stderr)
 
 
-def group_pairs(pairs):
+def hash_content(finfo):
+    try:
+        with open(finfo.path, 'rb') as fh:
+            content = fh.read()
+            return (sha1(content).hexdigest(), finfo.path)
+    except IOError as s:
+        print(s, file=stderr)
+        return ("_ERROR", finfo.path)
+
+
+def parallel_hash(finfos, pool=None):
+    global hashes_calculated, hashes_skipped
+    # Might have exclusively paths of this size with same inode
+    if len({finfo.inode for finfo in finfos}) == 1:
+        inode = finfos[0].inode  # Any finfo will do
+        hashes = [(f"<INODE {inode}>", finfo.path) for finfo in finfos]
+        hashes_skipped += len(finfos)
+        return hashes
+
+    # Otherwise, split up the inodes with one versus several paths
+    unique_inodes = [f[0] for _, f in group_by_key(finfos, INODE, Finfo)
+                          if len(f) == 1]
+    dup_inodes = [f for _, f in group_by_key(finfos, key=INODE)
+                    if len(f) > 1]
+
+    # Use the pool to parallelize distinct inodes
+    hashes = pool.map(hash_content, unique_inodes)
+    hashes_calculated += len(hashes)
+
+    # Might add to hashes if we have hardlink sets
+    # Note: there COULD be many such inode sets, which are calculated
+    #     serially.  However, the performance difference between serial
+    #     and parallel is so small that it matters little.
+    for dup_inode in dup_inodes:
+        finfo = Finfo(*dup_inode[0])  # Use the first one
+        digest, _ = hash_content(finfo)
+        more_hashes = [(digest, dup[1]) for dup in dup_inode]
+        hashes.extend(more_hashes)
+        hashes_calculated += 1
+        hashes_skipped += len(more_hashes)-1
+
+    return hashes
+
+
+def group_by_key(records, key=0, val_type=lambda *x: tuple(x), reverse=True):
     """Combine adjacent second items in pairs
-    
+
     This function is passed an interable each of whose values is a pair;
     it yields a sequence of pairs whose first element is the identical
     first element from the original pairs, and whose second element is a
-    list of second elements corresponding to the same first element. Only
+    list of tail elements corresponding to the same first element. Only
     adjacent pairs sharing a first element are grouped together, so if the
     grouping is required to be global, you should pass in 'sorted(pairs)'
     rather than the raw iterable.  E.g.:
 
-    >>> things = [(1,'foo'), (1,'bar'), (2, 'baz')]
-    >>> group_pairs(things)
-    [(1,['foo','bar']), (2, ['baz'])]
+      >>> things = [(1,'foo', 17), (1,'bar', 119), (2, 'baz', 43)]
+      >>> list(group_by_key(things))
+      [(1, [(1, 'foo', 17), (1, 'bar', 119)]), (2, [(2, 'baz', 43)])]
+      >>> Finfo = namedtuple("Finfo", ["size", "path", "inode"])
+      >>> list(group_by_key(things, val_type=Finfo))
+      [(1, [Finfo(size=1, path='foo', inode=17),
+            Finfo(size=1, path='bar', inode=119)]),
+       (2, [Finfo(size=2, path='baz', inode=43)])]
+
+    By default, groups are arranged from largest to smallest key value.
     """
-    for idx, vals in groupby(pairs, lambda pair: pair[0]):
-        yield (idx, [v[1] for v in vals])
+    records = sorted(records, key=itemgetter(key), reverse=reverse)
+    for idx, vals in groupby(records, itemgetter(key)):
+        yield (idx, [val_type(*v) for v in vals])
+
+
+def get_path_infos(dirs, opts):
+    "Return a list of Finfo objects"
+    count = 0
+    for path, size, inode in scan_files(dirs, opts):
+        if opts.min_size <= size <= opts.max_size:
+            count += 1
+            yield Finfo(size, path, inode)
+    if opts.verbose:
+        print(f"Looked up  {count:,} file sizes", file=stderr)
 
 
 def find_duplicates(dirs, opts):
     "Find the duplicate files in the given root directory."
-
-    # Organize all filenames according to size.
-    if opts.use_checkpoint and exists('sz.db'):
-        conn = sqlite3.connect('sz.db')
-        c = conn.cursor()
-        if opts.verbose:
-            print("Read cached file sizes from 'sz.db'...", file=stderr)
-    else:
-        count = 0
-        if exists('sz.db'):
-            remove('sz.db')
-        conn = sqlite3.connect('sz.db')
-        c = conn.cursor()
-        c.execute('create table files_by_size (size int, fname text)')
-        if opts.verbose:
-            print("Checking sizes (each '.' is 100k files):", file=stderr)
-        for fn in find_files(dirs, opts.glob):
-            if not isfile(fn):
-                continue
-            count += 1
-            sz = getsize(fn)
-            c.execute('insert into files_by_size values (?, ?)', (sz, fn))
-            if opts.verbose and count % 100000 == 0:
-                stderr.write('.')
-        conn.commit()
-        if opts.verbose:
-            print("\nFound sizes on %d files..." % count, file=stderr)
- 
-    c.execute('''select size, fname from files_by_size 
-                 where size<=? and size>=? 
-                 order by size desc''', (opts.max_size, opts.min_size))
-
-    if opts.verbose:
-        print("Grouping files by SHA1 (each '.' is 5k groups):", file=stderr)
-
+    # Need process pool
+    pool = Pool(processes=int(cpu_count()*0.75))
     distincts = 0
-    null_header = False
-    empties = 0
-    for sz, fnames in group_pairs(c):
-        # We might wish to exclude symbolic links
-        if opts.ignore_symlinks:
-            fnames = [f for f in fnames if not islink(f)]
+    npaths = 0
 
-        if sz == 0:
-            if not null_header:
-                print("Size: 0 : Content: ''")
-                null_header = True
-            for f in fnames:
-                print(' ', f)
-                empties += 1
-        else:
-            # We have accumulated some dups that need to be printed
-            if len(fnames) > 1:
-                hashes = []
-                if sz <= opts.size_only:
-                    for f in fnames:
-                        if islink(f):
-                            # No need to spend SHA1 time on symlink
-                            hashes.append(("_SYMLINK" , f))
-                            continue
-                        try:
-                            fh = open(f, 'rb')
-                            content = fh.read()
-                            fh.close()
-                            hashes.append((sha1(content).hexdigest(), f))
-                        except IOError as s:
-                            print(s, file=stderr)
-                    hashes.sort()
-                else:
-                    print('Size:', sz, ': Size:', sz)
-                    for f in fnames:
-                        print(' ', f)
-                    print('--')
+    # Loop over the path records
+    paths = get_path_infos(dirs, opts)
+    for sz, finfos in group_by_key(paths, 0, Finfo):
+        # We have accumulated some dups that need to be printed
+        if len(finfos) > 1:
+            hashes = parallel_hash(finfos, pool=pool)
+            for hash, vals in group_by_key(hashes):
+                if len(vals) > 1:
                     distincts += 1
-
-                for idx, vals in group_pairs(hashes):
-                    if len(vals) > 1:
-                        distincts +=1
-                        if sz > 40:
-                            print('Size: ', sz, ': MD5:', idx)
+                    print('Size:', sz, '| SHA1:', hash)
+                    for _, path in vals:
+                        npaths += 1
+                        if islink(path):
+                            ln = "-> " + readlink(path)
+                            print(' ', abspath(path), ln)
                         else:
-                            fh = open(vals[0], 'rb')
-                            content = fh.read()
-                            fh.close()
-                            print('Size: ', sz, ': Content:', repr(content))
-                        for fn2 in vals:
-                            if islink(fn2):
-                                ln = "-> " + readlink(fn2)
-                                print(' ', fn2, ln)
-                            else:
-                                print(' ', fn2)
-                        if opts.verbose and distincts % 5000 == 0:
-                            stderr.write('.')
+                            print(' ', abspath(path))
 
     if opts.verbose:
-        print("\nFound %d empty files"% empties, file=stderr)
-        print("Found %d non-empty duplicate sets" % distincts, file=stderr)
+        print(f"Found      {distincts:,} duplicatation sets", file=stderr)
+        print(f"Found      {npaths:,} paths within sets", file=stderr)
+        print(f"Calculated {hashes_calculated:,} SHA1 hashes", file=stderr)
+        print(f"Short-cut  {hashes_skipped:,} hard links", file=stderr)
 
 
 if __name__ == '__main__':
     main()
-

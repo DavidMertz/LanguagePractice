@@ -1,0 +1,9 @@
+#!/usr/bin/env julia
+
+using SHA
+
+fname = ARGS[1]
+content = UInt8[]
+readbytes!(open(fname, "r"), content, Inf)
+digest = bytes2hex(sha1(content))
+println("$(digest)  $(fname)")

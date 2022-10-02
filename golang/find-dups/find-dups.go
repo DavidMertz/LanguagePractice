@@ -22,22 +22,31 @@ package main
 import (
     "fmt"
     "os"
+    "syscall"
     "flag"
     "time"
     "sort"
+    "bytes"
     "path/filepath"
     "crypto/sha1"
+    "golang.org/x/text/language"
+    "golang.org/x/text/message"
 )
 
 type Finfo struct {
     fsize int64
     abspath string
     hash [20]byte
+    inode uint64
 }
+
+// Let's count the total hashes done and avoided
+var hashes_performed int = 0
+var hashes_skipped int = 0
 
 func WalkDir(dir string, c chan Finfo) error {
     return filepath.Walk(dir,
-			func(path string, info os.FileInfo, e error) error {
+            func(path string, info os.FileInfo, e error) error {
         if e != nil {
             return e
         }
@@ -46,51 +55,85 @@ func WalkDir(dir string, c chan Finfo) error {
             if err != nil {
                 fmt.Fprintf(os.Stderr, "SKIPPING %s\n", path)
             } else {
-                c <- Finfo{info.Size(), abspath, [20]byte{}}
+                var stat syscall.Stat_t
+                if e2 := syscall.Stat(abspath, &stat); err != nil { panic(e2) }
+                c <- Finfo{info.Size(), abspath, [20]byte{}, stat.Ino}
             }
         }
     return nil
     })
 }
 
-func FillHash(info Finfo, sizeOnly int) Finfo {
-    content, err := os.ReadFile(info.abspath)
+func FillHash(finfo Finfo, hashCache map[uint64][20]byte) Finfo {
+    content, err := os.ReadFile(finfo.abspath)
     if err != nil {
         fmt.Fprintf(os.Stderr,
-                    "UNAVAILABLE %s\n", info.abspath)
+                    "UNAVAILABLE %s\n", finfo.abspath)
     } else {
-        // If over size-only, use nulls as hash value
-        // i.e. perhaps skip work of large SHA calculation
-        if (info.fsize <= int64(sizeOnly)) {
-            info.hash = sha1.Sum(content)
+        // Maybe we've already hashed and cached this inode
+        hash, found := hashCache[finfo.inode]
+        if found { 
+            finfo.hash = hash
+            hashes_skipped += 1
+        // Hash might be uncalculated, and we need to perform it
+        } else if (finfo.hash == [20]byte{}) {
+            finfo.hash = sha1.Sum(content)
+            hashes_performed += 1
+            hashCache[finfo.inode] = finfo.hash
+        // Might have been filled in with an inode "pseudo-hash"
+        } else {
+            hashes_skipped += 1
         }
     }
-    return info
+    return finfo
 }
 
 func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
-              minSize int, maxSize int, sizeOnly int) {
+              minSize int, maxSize int) {
     // Sort from large to small filesize
     sort.Slice(dupsizes, func(i, j int) bool {
                 return dupsizes[i] > dupsizes[j] })
-
-    var sameHash map[[20]byte][]string
 
     for _, size := range dupsizes {
         if (size > int64(maxSize)) { continue }
         if (size < int64(minSize)) { continue }
 
-        sameHash = make(map[[20]byte][]string)
-
-        for _, info := range sizes[size] {
-            info = FillHash(info, sizeOnly)
-            sameHash[info.hash] = append(
-                            sameHash[info.hash], info.abspath)  
+        // Look for multiple paths all with same inode
+        firstInode := sizes[size][0].inode
+        allSameInode := true
+        for _, finfo := range sizes[size] {
+            if (finfo.inode != firstInode) { 
+                allSameInode = false
+                break
+            }
         }
+        if (allSameInode) {
+            for index, finfo := range sizes[size] {
+                strInode := fmt.Sprintf("<INODE %08d>    ", finfo.inode)
+                var byteInode [20]byte
+                copy(byteInode[:], strInode)
+                sizes[size][index].hash = byteInode
+            }
+        }
+        // Multiple inodes, possibly with multiple fnames in each
+        sameHash := make(map[[20]byte][]string)
+        hashCache := make(map[uint64][20]byte)
+
+        for _, finfo := range sizes[size] {
+            finfo = FillHash(finfo, hashCache)
+            thisHash := sameHash[finfo.hash]
+            sameHash[finfo.hash] = append(thisHash, finfo.abspath) 
+        }
+
+        // Print out the accumulated report with (pseudo)digests
         for hash, fnames := range sameHash {
             if (len(fnames) > 1) {
                 fmt.Fprintf(os.Stdout, "Size: %d | ", size)
-                fmt.Fprintf(os.Stdout, "SHA1: %x\n", hash)
+                if bytes.HasPrefix(hash[:], []byte("<INODE ")) {
+                    fmt.Fprintf(os.Stdout, "SHA1: %s\n", hash)
+                } else {
+                    fmt.Fprintf(os.Stdout, "SHA1: %x\n", hash)
+                }
                 for _, abspath := range fnames {
                     fmt.Fprintf(os.Stdout, "  %s\n", abspath)
                 }
@@ -99,57 +142,54 @@ func ShowDups(sizes map[int64][]Finfo, dupsizes []int64,
     }
 }
 
-/*
-var myFlagType string
-
-func init() {
-    const (
-        flagValue = "default value is foo"
-        flagUsage = "this is my flag explanation"
-    )
-    flag.StringVar(&myFlagType, "foo", flagValue, flagUsage)
-    flag.StringVar(&myFlagType, "f", flagValue, flagUsage+" (shorthand)")
-    flag.Parse()
-}
-
-*/
 func main() {
-    sizeOnly := flag.Int("size-only", 1e9,
-        "Files match if same-size larger than size-only")
-    maxSize := flag.Int("max-size", 1e10,
-        "Ignore files larger than max-size")
-    minSize := flag.Int("min-size", 1,
-        "Ignore files smaller than min-size")
-    verbose := flag.Bool("verbose", false,
-        "Display progress information on STDERR")
+    var maxSize int
+    flag.IntVar(&maxSize, "max-size", 1e10,
+                "Ignore files larger than max-size")
+    flag.IntVar(&maxSize, "M", 1e10, "Ignore larger than (short flag)")
+    var minSize int
+    flag.IntVar(&minSize, "min-size", 1,
+                "Ignore files smaller than min-size")
+    flag.IntVar(&minSize, "m", 1, "Ignore smaller than (short flag")
+    var verbose bool
+    flag.BoolVar(&verbose, "verbose", false, 
+                 "Display progress information on STDERR")
+    flag.BoolVar(&verbose, "v", false, "Display info on STDERR (short flag)")
     flag.Parse()
     dir := flag.Args()[0]
 
-    if (*verbose) {
-        fmt.Fprintf(os.Stderr, "size-only %d\n", *sizeOnly)
-        fmt.Fprintf(os.Stderr, "max-size %d\n", *maxSize)
-        fmt.Fprintf(os.Stderr, "min-size %d\n", *minSize)
-        fmt.Fprintf(os.Stderr, "verbose %t\n", *verbose)
-        fmt.Fprintf(os.Stderr, "directory %s\n", dir)
-    }
-	// Mapping from size to {abspath, sha1}  
-	sizes := make(map[int64][]Finfo)
+    p := message.NewPrinter(language.English)
 
-    // Find the files then later fill in sha1 hashes
+    if (verbose) {
+        p.Fprintf(os.Stderr, "max-size %d\n", maxSize)
+        p.Fprintf(os.Stderr, "min-size %d\n", minSize)
+        p.Fprintf(os.Stderr, "verbose %t\n", verbose)
+        p.Fprintf(os.Stderr, "directory %s\n", dir)
+    }
+    // Mapping from size to {abspath, sha1}  
+    sizes := make(map[int64][]Finfo)
+
+    // Find the files then later fill in SHA1 hashes
     c := make(chan Finfo, 100)
     go WalkDir(dir, c)
     for {
         select {
-            case info := <-c:
-                sizes[info.fsize] = append(sizes[info.fsize], info)
+            case finfo := <-c:
+                sizes[finfo.fsize] = append(sizes[finfo.fsize], finfo)
             case <-time.After(time.Second):
                 var dupsizes []int64
-                for size, info := range sizes {
-                    if (len(info) > 1) {
+                for size, finfo := range sizes {
+                    if (len(finfo) > 1) {
                         dupsizes = append(dupsizes, size)
                     }
                 }
-                ShowDups(sizes, dupsizes, *minSize, *maxSize, *sizeOnly)
+                ShowDups(sizes, dupsizes, minSize, maxSize)
+                if (verbose) {
+                    p.Fprintf(os.Stderr, 
+                        "Hashes performed %d\n", hashes_performed)
+                    p.Fprintf(os.Stderr,
+                        "Hashes short-cut %d\n", hashes_skipped)
+                }
                 return
         }
     }

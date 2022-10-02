@@ -10,6 +10,7 @@ Session.vim
 tags
 
 sz.db
-find-dups.python
-find-dups.golang
-find-dups.rust
+typescript/package-lock.json
+/find-dups.*
+data
+test.*
