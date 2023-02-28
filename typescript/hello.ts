@@ -8,3 +8,8 @@ let user = "Jane User";
  
 console.log(greeter(user));
 
+console.log`Foo   | Bar
+             ${1}  | ${2}
+             ${3}  | ${4}
+             `;
+
