@@ -19,7 +19,8 @@ Information below.
 */
 extern crate walkdir;
 extern crate clap;
-extern crate crypto;
+
+use sha1::{Sha1, Digest};
 
 use std::fs;
 use std::os::unix::fs::MetadataExt;
@@ -31,7 +32,6 @@ use clap::{Arg, App};
 use num_format::{Locale, ToFormattedString};
 
 fn get_hexdigest(path: &String, 
-                 newhash: bool, 
                  hash_cache: &mut HashMap<u64, String>) -> (String, bool) {
     // If we have cached this inode, no need to hash again
     let inode = get_inode(path.to_string());
@@ -50,21 +50,12 @@ fn get_hexdigest(path: &String,
         Err(error) => {
             eprintln!("UNAVAILABLE {} {:#?}", path, error); vec![] } 
     };
-    if newhash {
-        use sha1::Digest;
-        let digest = sha1::Sha1::digest(&content);
-        let hexdigest = format!("{:x}", digest);
-        hash_cache.insert(inode, hexdigest.clone());
-        return (hexdigest, true);
-    } else {
-        use self::crypto::digest::Digest;
-        use self::crypto::sha1::Sha1;
-        let mut hash = Sha1::new();
-        hash.input(&content);
-        let hexdigest = hash.result_str();
-        hash_cache.insert(inode, hexdigest.clone());
-        return (hexdigest, true);
-    }
+    let mut hasher = Sha1::new();
+    hasher.update(&content);
+    let digest = hasher.finalize();        
+    let hexdigest = format!("{:x}", digest);
+    hash_cache.insert(inode, hexdigest.clone());
+    return (hexdigest, true);
 }
 
 fn get_inode(path: String) -> u64 {
@@ -103,7 +94,7 @@ fn count_inodes(paths: Vec<String>) -> (bool, u64) {
     }
 }
 
-fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>, newhash: bool) -> (u32, u32) {
+fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>) -> (u32, u32) {
     let mut hashcount: u32 = 0;
     let mut hashskip: u32 = 0;
 
@@ -124,7 +115,7 @@ fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>, newhash: bool) -> (u32, 
             let mut hash_cache = HashMap::<u64, String>::new();
             for path in paths {
                 let (hexdigest, newhash) = get_hexdigest(
-                            &path.to_string(), newhash, &mut hash_cache);
+                            &path.to_string(), &mut hash_cache);
                 if newhash { hashcount += 1; }
                 else { hashskip += 1; };
 
@@ -153,7 +144,7 @@ fn show_dups(filesizes: BTreeMap::<u64, Vec::<String>>, newhash: bool) -> (u32, 
 
 fn main() {
 	let args = App::new("Find Duplicate File Contents")
-		.version("0.1")
+		.version("2025.04")
 		.author("David Mertz <mertz@kdm.training>")
 		.about("Find Duplicate File Contents")
 		.arg(Arg::with_name("minSize")
@@ -175,10 +166,6 @@ fn main() {
 			.long("verbose")
 		    .multiple(false)
 		    .help("Display extra information on STDERR"))
-		.arg(Arg::with_name("newhash")
-			.long("RustCrypto")
-		    .multiple(false)
-		    .help("Use maintained, but slower, RustCrypto for SHA1"))
 		.get_matches();
 
     let dir = args.value_of("DIR").unwrap();
@@ -199,12 +186,10 @@ fn main() {
         }
     };
     let verbose = args.is_present("verbose");
-    let newhash = args.is_present("newhash");
     if verbose {
         eprintln!("verbose {}", verbose);
         eprintln!("min-size {}", min_size.to_formatted_string(&Locale::en));
         eprintln!("max-size {}", max_size.to_formatted_string(&Locale::en));
-        eprintln!("RustCrypto {}", newhash);
         eprintln!("rootdir {}", dir);
     }
 
@@ -233,7 +218,7 @@ fn main() {
             filesizes.insert(meta.len(), files);
         }
     }
-    let (hashcount, hashskip) = show_dups(filesizes, newhash);
+    let (hashcount, hashskip) = show_dups(filesizes);
 
     if verbose {
         eprintln!("Hashes performed: {}", 

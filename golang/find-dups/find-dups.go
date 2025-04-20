@@ -156,6 +156,11 @@ func main() {
                  "Display progress information on STDERR")
     flag.BoolVar(&verbose, "v", false, "Display info on STDERR (short flag)")
     flag.Parse()
+    if (len(flag.Args()) == 0) {
+        fmt.Fprintf(os.Stderr, "Usage: %s [options] directory\n", os.Args[0])
+        flag.PrintDefaults()
+        os.Exit(1)  // Exit with error code 1 for failure to parse command-line flags
+    }
     dir := flag.Args()[0]
 
     p := message.NewPrinter(language.English)
