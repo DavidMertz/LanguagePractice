@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uvx python@3.13
 """
 Given a root directory, recurse in it and find all the duplicate
 files, files that have the same contents, but not necessarily the

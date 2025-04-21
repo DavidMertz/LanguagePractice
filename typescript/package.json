@@ -9,6 +9,7 @@
     "ts-command-line-args": "^2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^16.7.6"
+    "@types/node": "^16.7.6",
+    "typescript": "^5.8.3"
   }
 }

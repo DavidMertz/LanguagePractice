@@ -17,7 +17,6 @@
 # below.
 require 'optparse'
 require 'digest'
-require "active_support"
 
 # Process the command line, including default values
 def get_opts
@@ -150,7 +149,7 @@ def report_dups(opts)
 end
 
 def commas(num)
-  ActiveSupport::NumberHelper.number_to_delimited(num)
+  num.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse
 end
 
 # Parse the command line

@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Each language reports file count and time elapsed for CONDA_PREFIX"
+echo "Each language reports file count and time elapsed for UV_CACHE_DIR"
 echo
 echo "| Language (options)   | Sanity chk | Wall clock time"
 echo "|----------------------|------------|----------------"
@@ -40,13 +40,19 @@ dups=$(grep '^  ' find-dups.python | wc -l)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
+# TODO: Fix for recent Julia version
 echo -n "| Julia (-O3)         "
+dups="FIXME"
+secs="-"
+echo " | dups $dups | $secs"
+echo '
 start=$(date +%s)
 julia -O3 julia/find-dups $UV 2>/dev/null >find-dups.julia 
 end=$(date +%s)
-dups=$(grep '^  ' find-dups.julia | wc -l)
+dups=$(grep "^  " find-dups.julia | wc -l)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
+' >/dev/null
 
 echo -n "| Haskell             "
 start=$(date +%s)
@@ -57,6 +63,10 @@ secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
 echo -n "| TypeScript (js-sha1)"
+dups="FIXME"
+secs="-"
+echo " | dups $dups | $secs"
+echo ' # Many lines badly broken in Typescript, 2018 version
 cd typescript >/dev/null
 tsc find-dups.ts
 cp find-dups.js find-dups
@@ -64,25 +74,32 @@ cd - >/dev/null
 start=$(date +%s)
 typescript/find-dups -j $UV 2>/dev/null >find-dups.typescript
 end=$(date +%s)
-dups=$(grep '^  ' find-dups.typescript | wc -l)
+dups=$(grep "^  " find-dups.typescript | wc -l)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
+' >/dev/null
 
 echo -n "| TypeScript (Rusha)  "
+dups="FIXME"
+secs="-"
+echo " | dups $dups | $secs"
+echo ' # Many lines badly broken in Typescript, 2018 version
 start=$(date +%s)
 typescript/find-dups -r $UV 2>/dev/null >find-dups.typescript
 end=$(date +%s)
 dups=$(grep '^  ' find-dups.typescript | wc -l)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
+' >/dev/null
 
 # Far too slow to run very much
-#echo -n "| Bash                "
-#start=$(date +%s)
+echo '
+echo -n "| Bash                "
+start=$(date +%s)
 
-#bash/find-dups $UV >find-dups.bash
-#end=$(date +%s)
-#dups=$(grep '^  ' find-dups.bash | wc -l)
-#secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
-#echo " | dups $dups | $secs"
-
+bash/find-dups $UV >find-dups.bash
+end=$(date +%s)
+dups=$(grep '^  ' find-dups.bash | wc -l)
+secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
+echo " | dups $dups | $secs"
+' >/dev/null

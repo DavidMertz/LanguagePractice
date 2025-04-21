@@ -40,10 +40,7 @@ exports.__esModule = true;
 var fs = require("fs");
 var path = require("path");
 var sha1 = require("js-sha1");
-var Rusha = require("rusha");
-var cmd_ts_1 = require("cmd-ts");
 var by_size = {};
-var inodeCache = {};
 /* Callbacks and completion of each for a spin-wait */
 var todo = 0;
 var done = 0;
@@ -106,7 +103,7 @@ var walkdir = function (dir, found) {
                 }
                 else if (stat.isSymbolicLink()) {
                     // Skip these
-                    problem(null, "Skipping symlink " + file);
+                    problem(null, "Skipping symlink ".concat(file));
                 }
                 else if (stat.isFile()) {
                     var finfo = {
@@ -133,7 +130,7 @@ var accum_by_size = function (finfo) {
     var size = finfo.size;
     // The first time we've seen this size
     if (!(size in by_size)) {
-        finfo.hash = "<INODE " + finfo.inode + ">";
+        finfo.hash = "<INODE ".concat(finfo.inode, ">");
         by_size[size] = [finfo];
     }
     // Subsequent files of the same size...
@@ -184,10 +181,10 @@ var showDups = function () {
             for (var _c = 0, _d = Object.entries(by_sha1); _c < _d.length; _c++) {
                 var _e = _d[_c], sha1_2 = _e[0], finfos_4 = _e[1];
                 if (finfos_4.length > 1) {
-                    console.log("Size: " + size + " | SHA1: " + sha1_2);
+                    console.log("Size: ".concat(size, " | SHA1: ").concat(sha1_2));
                     for (var _f = 0, finfos_3 = finfos_4; _f < finfos_3.length; _f++) {
                         var finfo = finfos_3[_f];
-                        console.log("  " + finfo.fname);
+                        console.log("  ".concat(finfo.fname));
                     }
                 }
             }
@@ -198,8 +195,7 @@ var showDups = function () {
 function sleep(ms) {
     return new Promise(function (resolve) { return setTimeout(resolve, ms); });
 }
-/* Need async func to make sure all the promises are performed */
-function waitForShowDups() {
+function ShowDups(by_size) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -227,6 +223,51 @@ function waitForShowDups() {
 /*---------------------------------------------------------------------
  * The "main()" steps of the script
  ----------------------------------------------------------------------*/
+var cmd = command({
+    name: "find-dups",
+    description: 'Find files with identical contents',
+    version: '0.2',
+    args: {
+        rootdir: positional({
+            type: string,
+            displayName: "rootdir"
+        }),
+        jsSha1: flag({
+            long: "use-js-sha1",
+            short: "j",
+            type: boolean
+        }),
+        rusha: flag({
+            long: "use-rusha-sha",
+            short: "r",
+            type: boolean
+        }),
+        verbose: flag({
+            long: "verbose",
+            short: "v",
+            type: boolean
+        })
+    },
+    handler: function (args) {
+        if (args.jsSha1) {
+            shaLib = "js-sha1";
+        }
+        if (args.rusha) {
+            shaLib = "rusha";
+        }
+        verbose = args.verbose;
+        if (verbose) {
+            console.error("SHA1-lib: ".concat(shaLib));
+            for (var _i = 0, _a = Object.keys(args); _i < _a.length; _i++) {
+                var key = _a[_i];
+                console.error("".concat(key, ": ").concat(args[key]));
+            }
+        }
+        walkdir(args.rootdir, accum_by_size);
+        waitForShowDups();
+    }
+});
+run(cmd, process.argv.slice(2));
 var dir = process.argv[2];
 walkdir(dir, accum_by_size);
 ShowDups(by_size);
