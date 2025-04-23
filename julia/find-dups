@@ -90,10 +90,7 @@ function show_dups(by_size)
         # the hack to use list of tuples avoids the question
         Threads.@threads for (inode, paths) ∈ inodes_arr
             path = paths[1]
-            content = UInt8[]
-            open(path, "r") do fh
-                readbytes!(fh, content, Inf)
-            end
+            content = read(path)
             digest = bytes2hex(sha1(content))
             lock(hash_lock) do
                 digests[path] = digest
@@ -133,13 +130,6 @@ function main()
     maxsize = args["max-size"]
     minsize = args["min-size"]
 
-    if args["verbose"]
-        println(stderr, "Cores => $(Threads.nthreads())")
-        for (k, v) ∈ args
-            println(stderr, "$(k) => $(repr(v))")
-        end
-    end
-
     rootdir = args["rootdir"]
     for (root, _, files) ∈ walkdir(rootdir, follow_symlinks=false)
         for file ∈ files
@@ -160,10 +150,14 @@ function main()
 
     summary = show_dups(by_size)
     if args["verbose"]
+        println(stderr, "Cores => $(Threads.nthreads())")
+        for (k, v) ∈ args
+            println(stderr, "$(k) => $(repr(v))")
+        end
         for (k, v) ∈ summary
             println(stderr, "$(k) => $(repr(v))")
         end
-   end
+    end
 end
 
 main()

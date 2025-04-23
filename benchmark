@@ -40,19 +40,13 @@ dups=$(grep '^  ' find-dups.python | wc -l)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
 
-# TODO: Fix for recent Julia version
 echo -n "| Julia (-O3)         "
-dups="FIXME"
-secs="-"
-echo " | dups $dups | $secs"
-echo '
 start=$(date +%s)
-julia -O3 julia/find-dups $UV 2>/dev/null >find-dups.julia 
+julia -O3 -t$(nproc) julia/find-dups $UV 2>/dev/null >find-dups.julia 
 end=$(date +%s)
 dups=$(grep "^  " find-dups.julia | wc -l)
 secs=$(numfmt --to=si --suffix=" secs" $(($end-$start)))
 echo " | dups $dups | $secs"
-' >/dev/null
 
 echo -n "| Haskell             "
 start=$(date +%s)
